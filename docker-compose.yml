@@ -22,8 +22,8 @@ services:
     build: ./backend
     environment:
       - DATABASE_URL=postgresql://postgres:postgres@db:5432/startup_analyzer
-      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
-      - GEMINI_MODEL=gemini-1.5-pro
+      - GOOGLE_API_KEY=AIzaSyA8XRhhGRWob4kxY-fz9ntwsCFTrXOazns
+      - GEMINI_MODEL=gemini-pro
     volumes:
       - ./backend/app:/app/app
       - upload_data:/tmp/uploads

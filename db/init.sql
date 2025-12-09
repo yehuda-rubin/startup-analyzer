@@ -1,6 +1,4 @@
--- PostgreSQL syntax - remove CREATE DATABASE (already created by Docker)
-
--- Connect to database (already connected to startup_analyzer)
+-- PostgreSQL syntax - database already created by Docker
 
 -- Extensions
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
@@ -14,7 +12,7 @@ CREATE TABLE IF NOT EXISTS startups (
     stage VARCHAR(50),
     founded_year INTEGER,
     website VARCHAR(500),
-    metadata JSONB,
+    meta_data JSONB,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE
 );
@@ -29,7 +27,7 @@ CREATE TABLE IF NOT EXISTS documents (
     file_size INTEGER,
     content_text TEXT,
     vector_ids JSONB,
-    metadata JSONB,
+    meta_data JSONB,
     uploaded_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -47,7 +45,7 @@ CREATE TABLE IF NOT EXISTS analyses (
     context_used JSONB,
     confidence_score FLOAT,
     raw_response TEXT,
-    metadata JSONB,
+    meta_data JSONB,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -66,7 +64,7 @@ CREATE TABLE IF NOT EXISTS scores (
     reasoning TEXT,
     scoring_criteria JSONB,
     confidence_level VARCHAR(50),
-    metadata JSONB,
+    meta_data JSONB,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -87,7 +85,7 @@ CREATE TABLE IF NOT EXISTS market_analyses (
     competitive_advantages JSONB,
     data_sources JSONB,
     confidence_score FLOAT,
-    metadata JSONB,
+    meta_data JSONB,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -102,7 +100,7 @@ CREATE TABLE IF NOT EXISTS reports (
     executive_summary TEXT,
     recommendations JSONB,
     generated_by VARCHAR(100),
-    metadata JSONB,
+    meta_data JSONB,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 

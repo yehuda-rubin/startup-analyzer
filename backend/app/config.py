@@ -8,7 +8,7 @@ class Settings(BaseSettings):
     
     # Google Gemini
     GOOGLE_API_KEY: str = ""
-    GEMINI_MODEL: str = "gemini-1.5-pro"
+    GEMINI_MODEL: str = "gemini-pro"  # ✅ Default to stable version
     
     # Storage
     UPLOAD_DIR: str = "/tmp/uploads"

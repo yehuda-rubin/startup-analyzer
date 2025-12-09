@@ -3,8 +3,8 @@ import pickle
 from typing import List, Dict, Any, Optional
 import numpy as np
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.vectorstores import FAISS
-from langchain.embeddings import HuggingFaceEmbeddings
+from langchain_community.vectorstores import FAISS
+from langchain_community.embeddings import HuggingFaceEmbeddings
 from ..config import settings
 
 
@@ -85,10 +85,10 @@ class RAGService:
             if startup_id not in self.vector_stores:
                 store_path = self._get_store_path(startup_id)
                 if os.path.exists(store_path):
+                    # ✅ הסר את allow_dangerous_deserialization
                     self.vector_stores[startup_id] = FAISS.load_local(
                         store_path,
-                        self.embeddings,
-                        allow_dangerous_deserialization=True
+                        self.embeddings
                     )
                 else:
                     return []
