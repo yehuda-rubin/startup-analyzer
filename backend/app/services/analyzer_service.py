@@ -16,21 +16,43 @@ class AnalyzerService:
     ) -> Analysis:
         """Perform comprehensive startup analysis"""
         
+        print(f"\n{'='*60}")
+        print(f"🔬 ANALYSIS START: Startup {startup_id}")
+        print(f"{'='*60}")
+        
         # Get startup
         startup = db.query(Startup).filter(Startup.id == startup_id).first()
         if not startup:
             raise ValueError("Startup not found")
         
+        print(f"📊 Startup: {startup.name}")
+        
         # Define analysis queries based on type
         queries = self._get_analysis_queries(analysis_type)
+        print(f"📝 Running {len(queries)} queries")
         
         # Perform RAG for each query
         all_insights = []
         context_docs = []
         
-        for query in queries:
+        for i, query in enumerate(queries):
+            print(f"\n--- Query {i+1}/{len(queries)} ---")
+            print(f"❓ {query}")
+            
             context = await rag_service.get_context(startup_id, query, max_chunks=3)
+            
+            print(f"📚 Retrieved {len(context)} chunks")
+            total_chars = sum(len(c) for c in context)
+            print(f"📏 Total context: {total_chars} chars")
+            
+            if total_chars < 100:
+                print(f"⚠️ WARNING: Very little context retrieved!")
+            
             context_docs.extend(context)
+            
+            if not context:
+                print(f"❌ No context found - skipping query")
+                continue
             
             result = await llm_service.analyze_with_context(
                 query=query,
@@ -38,6 +60,10 @@ class AnalyzerService:
                 analysis_type=analysis_type
             )
             all_insights.append(result)
+        
+        if not all_insights:
+            print(f"❌ No insights generated - RAG failure!")
+            raise Exception("Analysis failed: No relevant context found in documents")
         
         # Aggregate results
         aggregated = self._aggregate_insights(all_insights)
@@ -52,7 +78,7 @@ class AnalyzerService:
             weaknesses=aggregated.get("weaknesses", []),
             opportunities=aggregated.get("opportunities", []),
             threats=aggregated.get("threats", []),
-            context_used={"chunks": len(context_docs)},
+            context_used={"chunks": len(context_docs), "total_chars": sum(len(c) for c in context_docs)},
             confidence_score=aggregated.get("confidence", 0.8),
             raw_response=str(all_insights)
         )
@@ -60,6 +86,10 @@ class AnalyzerService:
         db.add(analysis)
         db.commit()
         db.refresh(analysis)
+        
+        print(f"\n{'='*60}")
+        print(f"✅ ANALYSIS COMPLETE")
+        print(f"{'='*60}\n")
         
         return analysis
     

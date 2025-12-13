@@ -6,9 +6,9 @@ class Settings(BaseSettings):
     # Database
     DATABASE_URL: str = "postgresql://postgres:postgres@db:5432/startup_analyzer"
     
-    # Google Gemini
+    # Google Gemini - ✅ מודל חדש וזמין
     GOOGLE_API_KEY: str = ""
-    GEMINI_MODEL: str = "gemini-pro"  # ✅ Default to stable version
+    GEMINI_MODEL: str = "models/gemini-2.5-flash"  # ✅ מהיר וחדש
     
     # Storage
     UPLOAD_DIR: str = "/tmp/uploads"

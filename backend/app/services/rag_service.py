@@ -78,19 +78,27 @@ class RAGService:
         startup_id: int,
         query: str,
         k: int = 5
-    ) -> List[Dict[str, Any]]:
+        ) -> List[Dict[str, Any]]:
         """Search for relevant documents"""
         try:
+            print(f"\n🔍 RAG SEARCH:")
+            print(f"   Startup ID: {startup_id}")
+            print(f"   Query: {query[:100]}")
+            print(f"   K: {k}")
+            
             # Load vector store if not in memory
             if startup_id not in self.vector_stores:
                 store_path = self._get_store_path(startup_id)
+                print(f"   Loading from: {store_path}")
+                
                 if os.path.exists(store_path):
-                    # ✅ הסר את allow_dangerous_deserialization
                     self.vector_stores[startup_id] = FAISS.load_local(
                         store_path,
                         self.embeddings
                     )
+                    print(f"   ✅ Loaded vector store")
                 else:
+                    print(f"   ❌ Vector store not found!")
                     return []
             
             vector_store = self.vector_stores[startup_id]
@@ -98,16 +106,23 @@ class RAGService:
             # Search
             results = vector_store.similarity_search_with_score(query, k=k)
             
-            return [
-                {
+            print(f"   📊 Found {len(results)} results")
+            
+            formatted_results = []
+            for i, (doc, score) in enumerate(results):
+                print(f"   Result {i+1}: score={score:.3f}, length={len(doc.page_content)}")
+                print(f"   Preview: {doc.page_content[:100]}...")
+                
+                formatted_results.append({
                     "content": doc.page_content,
                     "metadata": doc.metadata,
                     "score": float(score)
-                }
-                for doc, score in results
-            ]
+                })
+            
+            return formatted_results
             
         except Exception as e:
+            print(f"   ❌ Search failed: {str(e)}")
             raise Exception(f"Search failed: {str(e)}")
     
     async def get_context(

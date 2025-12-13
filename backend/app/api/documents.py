@@ -21,6 +21,10 @@ async def upload_documents(
 ):
     """Upload documents for a startup"""
     
+    print(f"\n{'='*60}")
+    print(f"📤 UPLOAD REQUEST: {startup_name}")
+    print(f"{'='*60}")
+    
     # Create or get startup
     startup = db.query(Startup).filter(Startup.name == startup_name).first()
     if not startup:
@@ -32,19 +36,32 @@ async def upload_documents(
         db.commit()
         db.refresh(startup)
     
+    print(f"✅ Startup ID: {startup.id}")
+    
     uploaded_docs = []
     texts_for_rag = []
     metadatas_for_rag = []
     
     for file in files:
+        print(f"\n📄 Processing: {file.filename}")
+        
         # Save file
         file_path = os.path.join(settings.UPLOAD_DIR, f"{startup.id}_{file.filename}")
         with open(file_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
         
+        print(f"💾 Saved to: {file_path}")
+        
         # Process document
         try:
             processed = document_processor.process_file(file_path)
+            
+            text_length = len(processed["text"])
+            print(f"📝 Extracted text length: {text_length} chars")
+            print(f"📝 First 200 chars: {processed['text'][:200]}")
+            
+            if text_length < 50:
+                print(f"⚠️ WARNING: Text too short! Might be extraction failure.")
             
             # Create document record
             doc = Document(
@@ -54,7 +71,7 @@ async def upload_documents(
                 file_type=processed["metadata"]["file_type"],
                 file_size=os.path.getsize(file_path),
                 content_text=processed["text"],
-                metadata=processed["metadata"]
+                meta_data=processed["metadata"]
             )
             db.add(doc)
             
@@ -63,74 +80,47 @@ async def upload_documents(
             metadatas_for_rag.append({
                 "document_id": doc.id,
                 "filename": file.filename,
-                "file_type": doc.file_type
+                "file_type": doc.file_type,
+                "startup_name": startup_name
             })
             
             uploaded_docs.append({
                 "filename": file.filename,
                 "size": doc.file_size,
-                "type": doc.file_type
+                "type": doc.file_type,
+                "text_length": text_length
             })
             
         except Exception as e:
+            print(f"❌ Processing failed: {str(e)}")
             raise HTTPException(status_code=400, detail=f"Failed to process {file.filename}: {str(e)}")
     
     db.commit()
     
     # Add to RAG vector store
+    print(f"\n🔍 Adding to FAISS vector store...")
+    print(f"   Texts count: {len(texts_for_rag)}")
+    print(f"   Total chars: {sum(len(t) for t in texts_for_rag)}")
+    
     try:
-        await rag_service.add_documents(
+        vector_ids = await rag_service.add_documents(
             startup.id,
             texts_for_rag,
             metadatas_for_rag
         )
+        print(f"✅ Added {len(vector_ids)} chunks to vector store")
     except Exception as e:
+        print(f"❌ FAISS indexing failed: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to index documents: {str(e)}")
+    
+    print(f"\n{'='*60}")
+    print(f"✅ UPLOAD COMPLETE")
+    print(f"{'='*60}\n")
     
     return {
         "startup_id": startup.id,
         "startup_name": startup.name,
         "uploaded_documents": uploaded_docs,
-        "total_documents": len(uploaded_docs)
+        "total_documents": len(uploaded_docs),
+        "vector_chunks": len(vector_ids)
     }
-
-
-@router.get("/startup/{startup_id}")
-async def get_startup_documents(
-    startup_id: int,
-    db: Session = Depends(get_db)
-):
-    """Get all documents for a startup"""
-    documents = db.query(Document).filter(Document.startup_id == startup_id).all()
-    
-    return [
-        {
-            "id": doc.id,
-            "filename": doc.filename,
-            "file_type": doc.file_type,
-            "file_size": doc.file_size,
-            "uploaded_at": doc.uploaded_at.isoformat(),
-            "metadata": doc.metadata
-        }
-        for doc in documents
-    ]
-
-
-@router.delete("/{document_id}")
-async def delete_document(
-    document_id: int,
-    db: Session = Depends(get_db)
-):
-    """Delete a document"""
-    doc = db.query(Document).filter(Document.id == document_id).first()
-    if not doc:
-        raise HTTPException(status_code=404, detail="Document not found")
-    
-    # Delete file
-    if os.path.exists(doc.file_path):
-        os.remove(doc.file_path)
-    
-    db.delete(doc)
-    db.commit()
-    
-    return {"message": "Document deleted successfully"}

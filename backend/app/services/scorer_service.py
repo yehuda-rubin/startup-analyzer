@@ -1,6 +1,6 @@
-from typing import Dict, Any
 from sqlalchemy.orm import Session
-from ..models.models import Score, Startup, Analysis
+from typing import Dict, List, Any
+from ..models.models import Score, Startup
 from .llm_service import llm_service
 from .rag_service import rag_service
 
@@ -8,31 +8,14 @@ from .rag_service import rag_service
 class ScorerService:
     """Service for scoring startups"""
     
-    SCORING_CRITERIA = {
-        "team_score": {
-            "weight": 0.25,
-            "factors": ["Experience", "Domain expertise", "Track record", "Completeness"]
-        },
-        "product_score": {
-            "weight": 0.20,
-            "factors": ["Innovation", "Technical feasibility", "Product-market fit", "Differentiation"]
-        },
-        "market_score": {
-            "weight": 0.20,
-            "factors": ["Market size", "Growth potential", "Market timing", "Accessibility"]
-        },
-        "traction_score": {
-            "weight": 0.15,
-            "factors": ["Revenue", "User growth", "Partnerships", "Milestones"]
-        },
-        "financials_score": {
-            "weight": 0.10,
-            "factors": ["Unit economics", "Burn rate", "Runway", "Path to profitability"]
-        },
-        "innovation_score": {
-            "weight": 0.10,
-            "factors": ["Technology", "Business model", "IP/Patents", "Competitive moat"]
-        }
+    # Scoring weights (must sum to 1.0)
+    WEIGHTS = {
+        "team_score": 0.25,
+        "product_score": 0.20,
+        "market_score": 0.20,
+        "traction_score": 0.15,
+        "financials_score": 0.10,
+        "innovation_score": 0.10,
     }
     
     async def score_startup(
@@ -40,161 +23,326 @@ class ScorerService:
         db: Session,
         startup_id: int
     ) -> Score:
-        """Calculate comprehensive startup score"""
+        """Calculate comprehensive score for a startup"""
         
+        print(f"\n{'='*60}")
+        print(f"📊 SCORING START: Startup {startup_id}")
+        print(f"{'='*60}")
+        
+        # Get startup
         startup = db.query(Startup).filter(Startup.id == startup_id).first()
         if not startup:
             raise ValueError("Startup not found")
         
-        # Get context from RAG
-        scoring_context = await self._gather_scoring_context(startup_id)
+        print(f"🏢 Startup: {startup.name}")
         
         # Score each category
-        category_scores = {}
-        score_breakdown = {}
+        scores = {}
         
-        for category, criteria in self.SCORING_CRITERIA.items():
-            score_result = await self._score_category(
-                startup_id,
-                category,
-                criteria,
-                scoring_context
-            )
-            category_scores[category] = score_result["score"]
-            score_breakdown[category] = score_result
+        for category, weight in self.WEIGHTS.items():
+            print(f"\n--- Scoring {category} (weight: {weight*100}%) ---")
+            
+            score = await self._score_category(startup_id, category)
+            scores[category] = score
+            
+            print(f"✅ {category}: {score}/100")
+        
+        print(f"\n{'='*60}")
+        print(f"📈 SCORES BREAKDOWN:")
+        for cat, score in scores.items():
+            print(f"   {cat}: {score}/100")
+        print(f"{'='*60}")
         
         # Calculate overall score
-        overall_score = sum(
-            category_scores[cat] * self.SCORING_CRITERIA[cat]["weight"]
-            for cat in category_scores
-        )
+        overall = sum(scores[cat] * self.WEIGHTS[cat] for cat in self.WEIGHTS.keys())
         
-        # Generate reasoning
-        reasoning = await self._generate_reasoning(
-            startup,
-            category_scores,
-            overall_score,
-            scoring_context
-        )
+        print(f"\n🎯 Overall Score: {overall:.2f}/100")
         
-        # Determine confidence level
-        confidence = self._calculate_confidence(scoring_context)
+        # Determine confidence
+        confidence = self._calculate_confidence(scores)
+        
+        # Generate reasoning (NOW WITH AWAIT AND startup_id)
+        reasoning = await self._generate_reasoning(startup_id, scores, overall)
         
         # Create score record
-        score = Score(
+        score_record = Score(
             startup_id=startup_id,
-            overall_score=round(overall_score, 2),
-            team_score=round(category_scores.get("team_score", 0), 2),
-            product_score=round(category_scores.get("product_score", 0), 2),
-            market_score=round(category_scores.get("market_score", 0), 2),
-            traction_score=round(category_scores.get("traction_score", 0), 2),
-            financials_score=round(category_scores.get("financials_score", 0), 2),
-            innovation_score=round(category_scores.get("innovation_score", 0), 2),
-            score_breakdown=score_breakdown,
+            overall_score=overall,
+            team_score=scores.get("team_score", 0),
+            product_score=scores.get("product_score", 0),
+            market_score=scores.get("market_score", 0),
+            traction_score=scores.get("traction_score", 0),
+            financials_score=scores.get("financials_score", 0),
+            innovation_score=scores.get("innovation_score", 0),
+            score_breakdown=scores,
             reasoning=reasoning,
-            scoring_criteria=self.SCORING_CRITERIA,
+            scoring_criteria=self.WEIGHTS,
             confidence_level=confidence
         )
         
-        db.add(score)
+        db.add(score_record)
         db.commit()
-        db.refresh(score)
+        db.refresh(score_record)
         
-        return score
-    
-    async def _gather_scoring_context(self, startup_id: int) -> Dict[str, str]:
-        """Gather context for scoring"""
-        contexts = {}
+        print(f"\n{'='*60}")
+        print(f"✅ SCORING COMPLETE")
+        print(f"{'='*60}\n")
         
-        queries = [
-            ("team", "Tell me about the founding team, their experience, and track record"),
-            ("product", "Describe the product, technology, and innovation"),
-            ("market", "What is the market opportunity and competitive landscape?"),
-            ("traction", "What traction, revenue, users, or growth has been achieved?"),
-            ("financials", "What are the financial metrics, burn rate, and projections?"),
-        ]
-        
-        for key, query in queries:
-            chunks = await rag_service.get_context(startup_id, query, max_chunks=3)
-            contexts[key] = "\n".join(chunks)
-        
-        return contexts
+        return score_record
     
     async def _score_category(
         self,
         startup_id: int,
-        category: str,
-        criteria: Dict,
-        context: Dict[str, str]
-    ) -> Dict[str, Any]:
+        category: str
+    ) -> float:
         """Score a specific category"""
         
-        category_name = category.replace("_score", "")
-        context_text = context.get(category_name, "")
+        # Get context
+        query = self._get_category_query(category)
+        print(f"   Query: {query[:100]}...")
         
-        prompt = f"""Score this startup on the {category_name} dimension on a scale of 0-100.
-
-Evaluation Factors: {', '.join(criteria['factors'])}
-
-Provide a score (0-100) and brief justification.
-
-Respond in JSON format:
-{{
-  "score": <number 0-100>,
-  "justification": "<brief explanation>",
-  "key_factors": ["factor1", "factor2"]
-}}"""
-
+        context = await rag_service.get_context(startup_id, query, max_chunks=5)
+        
+        if not context or sum(len(c) for c in context) < 50:
+            print(f"   ⚠️ WARNING: Insufficient context for {category}")
+            return 50.0  # Default middle score when no info
+        
+        print(f"   📚 Context: {sum(len(c) for c in context)} chars")
+        
+        # Build scoring prompt
+        prompt = self._build_scoring_prompt(category, context)
+        
+        # Get LLM score
         try:
             result = await llm_service.generate_structured(
                 prompt=prompt,
-                context=context_text
+                context=None  # Context already in prompt
             )
-            return result
-        except:
-            # Fallback
-            return {
-                "score": 50,
-                "justification": "Insufficient data for accurate scoring",
-                "key_factors": []
-            }
+            
+            print(f"   📝 LLM Response: {result}")
+            
+            # Extract score with validation
+            score = float(result.get("score", 50))
+            
+            # Validate range
+            if score < 0 or score > 100:
+                print(f"   ⚠️ Score out of range: {score}, clamping to 0-100")
+                score = max(0, min(100, score))
+            
+            return score
+            
+        except Exception as e:
+            print(f"   ❌ Scoring failed for {category}: {str(e)}")
+            return 50.0
     
-    async def _generate_reasoning(
-        self,
-        startup: Startup,
-        scores: Dict[str, float],
-        overall: float,
-        context: Dict[str, str]
-    ) -> str:
-        """Generate human-readable reasoning for the score"""
+    def _get_category_query(self, category: str) -> str:
+        """Get search query for each category"""
         
-        prompt = f"""Generate a concise executive summary explaining why {startup.name} received an overall score of {overall:.1f}/100.
-
-Category Scores:
-- Team: {scores.get('team_score', 0):.1f}
-- Product: {scores.get('product_score', 0):.1f}
-- Market: {scores.get('market_score', 0):.1f}
-- Traction: {scores.get('traction_score', 0):.1f}
-- Financials: {scores.get('financials_score', 0):.1f}
-- Innovation: {scores.get('innovation_score', 0):.1f}
-
-Write 2-3 paragraphs highlighting the main strengths and concerns."""
-
-        all_context = "\n\n".join(context.values())
-        reasoning = await llm_service.generate(prompt, context=all_context, temperature=0.5)
+        queries = {
+            "team_score": "What is the team's background, experience, expertise, and track record? Who are the founders and key team members?",
+            "product_score": "What is the product innovation, technical feasibility, product-market fit, and differentiation from competitors?",
+            "market_score": "What is the market size (TAM/SAM/SOM), growth potential, market timing, and market accessibility?",
+            "traction_score": "What is the revenue, user growth, customer acquisition, partnerships, and key milestones achieved?",
+            "financials_score": "What are the unit economics (LTV/CAC), burn rate, runway, path to profitability, and financial projections?",
+            "innovation_score": "What is the technology innovation, intellectual property (patents), business model uniqueness, and competitive moat?",
+        }
         
-        return reasoning
+        return queries.get(category, "Analyze this startup")
     
-    def _calculate_confidence(self, context: Dict[str, str]) -> str:
-        """Calculate confidence level based on available data"""
-        total_chars = sum(len(v) for v in context.values())
+    def _build_scoring_prompt(self, category: str, context: List[str]) -> str:
+        """Build prompt for scoring a category"""
         
-        if total_chars > 5000:
+        context_text = "\n\n---\n\n".join(context)
+        
+        # Category-specific criteria
+        criteria_map = {
+            "team_score": [
+                "Founder experience (5+ years in industry)",
+                "Domain expertise and track record",
+                "Previous successful exits or achievements",
+                "Team completeness (CTO, CEO, CPO roles covered)"
+            ],
+            "product_score": [
+                "Innovation level and uniqueness",
+                "Technical feasibility and execution",
+                "Product-market fit evidence",
+                "Differentiation from competitors"
+            ],
+            "market_score": [
+                "Total addressable market size (TAM > $1B)",
+                "Market growth rate (> 10% annually)",
+                "Market timing and trends",
+                "Market accessibility and barriers to entry"
+            ],
+            "traction_score": [
+                "Revenue (MRR/ARR)",
+                "User/customer growth rate",
+                "Strategic partnerships",
+                "Key milestones and achievements"
+            ],
+            "financials_score": [
+                "Unit economics (LTV/CAC ratio > 3)",
+                "Burn rate and runway (> 12 months)",
+                "Path to profitability",
+                "Financial sustainability"
+            ],
+            "innovation_score": [
+                "Technology innovation and IP (patents, proprietary tech)",
+                "Business model innovation",
+                "Competitive moat and defensibility",
+                "R&D capabilities"
+            ]
+        }
+        
+        criteria = criteria_map.get(category, [])
+        criteria_text = "\n".join(f"- {c}" for c in criteria)
+        
+        return f"""You are an expert startup investor. Score this startup on the {category.replace('_', ' ').title()} dimension.
+
+CONTEXT FROM STARTUP DOCUMENTS:
+{context_text}
+
+EVALUATION CRITERIA:
+{criteria_text}
+
+SCORING SCALE:
+- 90-100: Exceptional - Best in class, unicorn potential
+- 80-89: Excellent - Strong fundamentals, top 10%
+- 70-79: Good - Above average, solid investment
+- 60-69: Adequate - Average, meets expectations
+- 50-59: Below Average - Significant gaps
+- 0-49: Weak - Critical deficiencies
+
+IMPORTANT GUIDELINES:
+- Be objective but not overly conservative
+- 50 is BELOW AVERAGE, not neutral
+- Give credit for concrete achievements (patents, metrics, traction)
+- If evidence shows strength, score accordingly (don't default to 50)
+
+CRITICAL: Base your score ONLY on the provided context. If information is missing, score conservatively.
+
+Respond with valid JSON:
+{{
+  "score": <number 0-100>,
+  "justification": "2-3 sentence explanation citing specific evidence from context",
+  "key_factors": ["factor 1", "factor 2", "factor 3"]
+}}
+
+Example for innovation_score:
+{{
+  "score": 85,
+  "justification": "The startup demonstrates strong innovation through proprietary RNN algorithms and a pending patent for 'Trust-Score', providing technological defensibility. The serverless architecture delivers 30% faster performance than competitors.",
+  "key_factors": ["Proprietary AI models", "Patent pending", "Performance advantage"]
+}}"""
+    
+    def _calculate_confidence(self, scores: Dict[str, float]) -> str:
+        """Calculate confidence level based on score variance"""
+        
+        score_values = list(scores.values())
+        avg_score = sum(score_values) / len(score_values)
+        variance = sum((s - avg_score) ** 2 for s in score_values) / len(score_values)
+        std_dev = variance ** 0.5
+        
+        if std_dev < 10:
             return "High"
-        elif total_chars > 2000:
+        elif std_dev < 20:
             return "Medium"
         else:
             return "Low"
+    
+    async def _generate_reasoning(
+        self,
+        startup_id: int,
+        scores: Dict[str, float],
+        overall: float
+    ) -> str:
+        """Generate detailed reasoning for the score using LLM"""
+        
+        print(f"\n--- Generating Overall Reasoning ---")
+        
+        # Get comprehensive context
+        context_query = "Provide a comprehensive overview of the startup including: company name, product, technology, team, traction metrics, market opportunity, and key achievements."
+        context = await rag_service.get_context(startup_id, context_query, max_chunks=8)
+        
+        if not context:
+            # Fallback to simple reasoning
+            return self._generate_simple_reasoning(scores, overall)
+        
+        context_text = "\n\n".join(context)
+        
+        # Build detailed prompt
+        prompt = f"""You are an expert investment analyst writing a detailed investment memo.
+
+    SCORES:
+    Overall: {overall:.1f}/100
+    Team: {scores['team_score']:.0f} | Product: {scores['product_score']:.0f} | Market: {scores['market_score']:.0f}
+    Traction: {scores['traction_score']:.0f} | Financials: {scores['financials_score']:.0f} | Innovation: {scores['innovation_score']:.0f}
+
+    STARTUP DATA:
+    {context_text}
+
+    ===== ROLE & OBJECTIVE =====
+    Act as a Senior VC Analyst. Review the deck and generate a concise investment memo.
+
+    ===== CRITICAL RULES =====
+    1. **Source Truth:** Use ONLY metrics from the text.
+    2. **Output:** Provide the specific structure below.
+
+    ===== OUTPUT STRUCTURE =====
+
+    ### 🎯 Executive Summary
+    * **Verdict:** "[Company Name] scored **[Score]/100**. A [Solid/Risky/High-Potential] opportunity."
+    * **The Hook:** One sentence explaining the core value proposition.
+
+    ### 🚀 Key Strengths
+    * Choose the top 3 categories from [Product, Market, Traction, Innovation, Financials, Team].
+    * Format: "* **[Category Name] ([Score]):** [One sentence evidence with numbers]."
+
+    ### ⚠️ Critical Risks
+    * Choose the lowest scoring category.
+    * Format: "* **[Category Name] ([Score]):** [Specific concern]."
+    * **Financial Reality:** [One sentence on projections/burn rate].
+
+    ### 💡 Final Recommendation
+    * One decisive sentence on the investment decision.
+
+    ---
+    ### 📊 DATA_FOR_UI (Strictly output this list for parsing)
+    * Team: [Score]
+    * Product: [Score]
+    * Market: [Score]
+    * Traction: [Score]
+    * Financials: [Score]
+    * Innovation: [Score]
+    * Overall: [Score]"""
+         
+        try:
+            # Generate using LLM
+            # Generate using LLM
+            reasoning = await llm_service.generate(
+                prompt=prompt,
+                context=None,
+                temperature=0.7,
+                max_tokens=5000  # ✅ הגדלתי מ-1000 ל-1500
+            )
+            
+            # Clean up response
+            reasoning = reasoning.strip()
+            
+            # Remove any markdown code blocks
+            if "```" in reasoning:
+                parts = reasoning.split("```")
+                # Take the middle part if it's wrapped in code blocks
+                reasoning = parts[1] if len(parts) >= 3 else parts[0]
+                reasoning = reasoning.strip()
+            
+            print(f"✅ Generated reasoning ({len(reasoning)} chars)")
+            
+            return reasoning
+            
+        except Exception as e:
+            print(f"❌ Reasoning generation failed: {str(e)}")
+            return self._generate_simple_reasoning(scores, overall)
 
 
 # Singleton
