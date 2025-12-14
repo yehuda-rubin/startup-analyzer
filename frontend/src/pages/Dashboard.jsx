@@ -80,7 +80,7 @@ function Dashboard({ onSelectStartup }) {
         try {
           const startupScores = await getStartupScores(startup.id);
           if (startupScores.length > 0) {
-            scoresData[startup.id] = startupScores[0].overall_score;
+            scoresData[startup.id] = startupScores[0].overall_score.toFixed(1);
           }
         } catch (error) {
           console.error(`Failed to load scores for startup ${startup.id}`, error);
@@ -92,6 +92,16 @@ function Dashboard({ onSelectStartup }) {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleDelete = (deletedId) => {
+    // Remove from state immediately
+    setStartups(prevStartups => prevStartups.filter(s => s.id !== deletedId));
+    setScores(prevScores => {
+      const newScores = { ...prevScores };
+      delete newScores[deletedId];
+      return newScores;
+    });
   };
 
   if (loading) {
@@ -126,6 +136,7 @@ function Dashboard({ onSelectStartup }) {
             startup={startup}
             score={scores[startup.id]}
             onClick={(s) => onSelectStartup && onSelectStartup(s)}
+            onDelete={handleDelete}
           />
         ))}
       </div>

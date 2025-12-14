@@ -93,7 +93,7 @@ function ScoreGauge({ overall_score, category_scores, showBreakdown = false }) {
           ...styles.score,
           color: getColor(overall_score)
         }}>
-          {overall_score}
+          {overall_score.toFixed(1)}
         </div>
       </div>
       <div style={styles.label}>Overall Score</div>

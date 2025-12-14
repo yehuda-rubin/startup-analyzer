@@ -5,7 +5,7 @@ import os
 
 from .config import settings
 from .database import init_db
-from .api import documents, analysis, scoring, market, reports
+from .api import documents, analysis, scoring, market, reports, startups
 
 # Create upload directory
 os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
@@ -49,3 +49,4 @@ app.include_router(analysis.router, prefix="/api/analysis", tags=["Analysis"])
 app.include_router(scoring.router, prefix="/api/scoring", tags=["Scoring"])
 app.include_router(market.router, prefix="/api/market", tags=["Market Analysis"])
 app.include_router(reports.router, prefix="/api/reports", tags=["Reports"])
+app.include_router(startups.router, prefix="/api/startups", tags=["Startups"])

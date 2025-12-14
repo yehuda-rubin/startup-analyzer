@@ -323,7 +323,7 @@ Example for innovation_score:
                 prompt=prompt,
                 context=None,
                 temperature=0.7,
-                max_tokens=5000  # ✅ הגדלתי מ-1000 ל-1500
+                max_tokens=8000  # ✅ הגדלתי מ-1000 ל-10000
             )
             
             # Clean up response

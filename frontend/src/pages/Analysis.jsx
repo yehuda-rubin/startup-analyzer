@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import ScoreAnalysis from '../components/ScoreAnalysis';
 import ReactMarkdown from 'react-markdown';
 import { useParams } from 'react-router-dom';
 import { 
@@ -267,7 +268,7 @@ function Analysis() {
                 <h3 style={styles.cardTitle}>Score Analysis</h3>
                 <div style={styles.section}>
                   <div style={styles.sectionTitle}>Confidence: {score.confidence_level}</div>
-                  <p style={styles.text}>{score.reasoning}</p>
+                  <ScoreAnalysis reasoning={score.reasoning} />
                 </div>
               </div>
             </div>

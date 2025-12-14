@@ -98,4 +98,10 @@ export const listStartups = async () => {
   return response.data;
 };
 
+// Startups
+export const deleteStartup = async (startupId) => {
+  const response = await api.delete(`/startups/${startupId}`);
+  return response.data;
+};
+
 export default api;
