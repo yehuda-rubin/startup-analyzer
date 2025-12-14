@@ -62,7 +62,15 @@ async def get_market_analyses(
             "tam": analysis.tam,
             "sam": analysis.sam,
             "som": analysis.som,
+            "tam_description": analysis.tam_description,  # ← הוספתי!
+            "sam_description": analysis.sam_description,  # ← הוספתי!
+            "som_description": analysis.som_description,  # ← הוספתי!
+            "market_size_reasoning": analysis.market_size_reasoning,  # ← הוספתי!
             "growth_rate": analysis.growth_rate,
+            "market_trends": analysis.market_trends,  # ← הוספתי!
+            "competitors": analysis.competitors,  # ← הוספתי!
+            "competitive_advantages": analysis.competitive_advantages,  # ← הוספתי!
+            "confidence_score": analysis.confidence_score,  # ← הוספתי!
             "created_at": analysis.created_at.isoformat()
         }
         for analysis in analyses

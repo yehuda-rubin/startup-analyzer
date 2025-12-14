@@ -60,6 +60,15 @@ async def get_startup_scores(
         {
             "id": score.id,
             "overall_score": score.overall_score,
+            "category_scores": {  # ← הוסף!
+                "team": score.team_score,
+                "product": score.product_score,
+                "market": score.market_score,
+                "traction": score.traction_score,
+                "financials": score.financials_score,
+                "innovation": score.innovation_score
+            },
+            "reasoning": score.reasoning,  # ← הוסף!
             "confidence_level": score.confidence_level,
             "created_at": score.created_at.isoformat()
         }

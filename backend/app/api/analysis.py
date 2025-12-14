@@ -59,7 +59,14 @@ async def get_startup_analyses(
         {
             "id": analysis.id,
             "analysis_type": analysis.analysis_type,
-            "summary": analysis.summary[:200] + "..." if len(analysis.summary) > 200 else analysis.summary,
+            "summary": analysis.summary,  # ← הסרתי את החיתוך!
+            "key_insights": analysis.key_insights,  # ← הוספתי!
+            "strengths": analysis.strengths,  # ← הוספתי!
+            "weaknesses": analysis.weaknesses,  # ← הוספתי!
+            "opportunities": analysis.opportunities,  # ← הוספתי!
+            "threats": analysis.threats,  # ← הוספתי!
+            "risks": analysis.risks if hasattr(analysis, 'risks') else None,  # ← הוספתי!
+            "confidence_score": analysis.confidence_score,  # ← הוספתי!
             "created_at": analysis.created_at.isoformat()
         }
         for analysis in analyses

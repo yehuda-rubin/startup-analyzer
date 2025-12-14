@@ -1,113 +1,211 @@
 import React, { useState, useEffect } from 'react';
-import { listStartups, generateReport, getStartupScores } from '../services/api';
+import { listStartups, generateReport } from '../services/api';
+import ScoreAnalysis from '../components/ScoreAnalysis';
 
 const styles = {
   container: {
     padding: '20px',
+    maxWidth: '1400px',
+    margin: '0 auto',
+  },
+  header: {
+    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    borderRadius: '12px',
+    padding: '40px',
+    marginBottom: '30px',
+    color: 'white',
+    boxShadow: '0 10px 30px rgba(102, 126, 234, 0.3)',
   },
   title: {
-    fontSize: '32px',
-    fontWeight: 'bold',
-    color: '#2c3e50',
-    marginBottom: '30px',
+    fontSize: '36px',
+    fontWeight: '800',
+    margin: '0 0 10px 0',
+  },
+  subtitle: {
+    fontSize: '16px',
+    opacity: '0.9',
+    margin: '0',
   },
   selectionSection: {
     backgroundColor: '#fff',
-    borderRadius: '8px',
-    padding: '25px',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-    marginBottom: '20px',
+    borderRadius: '12px',
+    padding: '30px',
+    boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+    marginBottom: '30px',
   },
   sectionTitle: {
-    fontSize: '18px',
-    fontWeight: 'bold',
-    marginBottom: '15px',
+    fontSize: '20px',
+    fontWeight: '700',
+    marginBottom: '20px',
     color: '#2c3e50',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px',
   },
   checkboxGrid: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))',
-    gap: '10px',
-    marginBottom: '20px',
+    gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+    gap: '12px',
+    marginBottom: '25px',
   },
   checkboxLabel: {
     display: 'flex',
     alignItems: 'center',
-    gap: '10px',
-    padding: '10px',
+    gap: '12px',
+    padding: '14px 16px',
     backgroundColor: '#f8f9fa',
-    borderRadius: '4px',
+    borderRadius: '8px',
     cursor: 'pointer',
+    transition: 'all 0.3s',
+    border: '2px solid transparent',
+  },
+  checkboxLabelSelected: {
+    backgroundColor: '#e3f2fd',
+    borderColor: '#3498db',
   },
   checkbox: {
-    width: '18px',
-    height: '18px',
+    width: '20px',
+    height: '20px',
     cursor: 'pointer',
+    accentColor: '#3498db',
+  },
+  startupName: {
+    fontWeight: '600',
+    color: '#2c3e50',
+  },
+  buttonContainer: {
+    display: 'flex',
+    gap: '12px',
+    alignItems: 'center',
   },
   button: {
-    padding: '12px 24px',
-    backgroundColor: '#3498db',
+    padding: '14px 32px',
+    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
     color: '#fff',
     border: 'none',
-    borderRadius: '4px',
+    borderRadius: '8px',
     fontSize: '16px',
-    fontWeight: '600',
+    fontWeight: '700',
     cursor: 'pointer',
+    transition: 'all 0.3s',
+    boxShadow: '0 4px 15px rgba(102, 126, 234, 0.4)',
   },
   buttonDisabled: {
-    backgroundColor: '#95a5a6',
+    background: '#95a5a6',
     cursor: 'not-allowed',
+    boxShadow: 'none',
+  },
+  selectedCount: {
+    fontSize: '14px',
+    color: '#7f8c8d',
+    fontWeight: '600',
   },
   report: {
     backgroundColor: '#fff',
-    borderRadius: '8px',
-    padding: '30px',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-    marginBottom: '20px',
+    borderRadius: '12px',
+    padding: '40px',
+    boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+    marginBottom: '30px',
+    pageBreakAfter: 'always',
   },
   reportHeader: {
-    borderBottom: '2px solid #3498db',
-    paddingBottom: '15px',
-    marginBottom: '20px',
+    borderBottom: '3px solid #667eea',
+    paddingBottom: '20px',
+    marginBottom: '30px',
+    background: 'linear-gradient(135deg, #667eea15 0%, #764ba215 100%)',
+    padding: '25px',
+    borderRadius: '8px',
+    marginLeft: '-40px',
+    marginRight: '-40px',
+    marginTop: '-40px',
   },
   reportTitle: {
-    fontSize: '24px',
-    fontWeight: 'bold',
+    fontSize: '32px',
+    fontWeight: '800',
     color: '#2c3e50',
-    marginBottom: '5px',
+    marginBottom: '8px',
   },
   reportSubtitle: {
     fontSize: '14px',
     color: '#7f8c8d',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+  },
+  scoreCard: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+    gap: '15px',
+    marginBottom: '30px',
+    padding: '20px',
+    backgroundColor: '#f8f9fa',
+    borderRadius: '8px',
+  },
+  scoreItem: {
+    textAlign: 'center',
+  },
+  scoreLabel: {
+    fontSize: '12px',
+    textTransform: 'uppercase',
+    color: '#7f8c8d',
+    fontWeight: '600',
+    marginBottom: '5px',
+  },
+  scoreValue: {
+    fontSize: '28px',
+    fontWeight: '800',
   },
   section: {
-    marginBottom: '25px',
+    marginBottom: '30px',
   },
   sectionHeading: {
-    fontSize: '18px',
-    fontWeight: 'bold',
-    marginBottom: '10px',
-    color: '#34495e',
-  },
-  text: {
-    lineHeight: '1.6',
-    color: '#555',
-    whiteSpace: 'pre-line',
+    fontSize: '20px',
+    fontWeight: '700',
+    marginBottom: '15px',
+    color: '#2c3e50',
+    paddingBottom: '10px',
+    borderBottom: '2px solid #ecf0f1',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px',
   },
   recommendation: {
-    padding: '15px',
-    backgroundColor: '#e8f5e9',
-    borderLeft: '4px solid #4caf50',
-    borderRadius: '4px',
-    marginTop: '15px',
+    padding: '20px',
+    background: 'linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%)',
+    border: '2px solid #4caf50',
+    borderRadius: '8px',
+    marginTop: '20px',
+  },
+  recommendationBad: {
+    background: 'linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%)',
+    border: '2px solid #f44336',
   },
   recommendationText: {
     fontWeight: '600',
+    fontSize: '16px',
+  },
+  recommendationTextGood: {
     color: '#2e7d32',
+  },
+  recommendationTextBad: {
+    color: '#c62828',
+  },
+  printButton: {
+    padding: '10px 20px',
+    backgroundColor: '#34495e',
+    color: '#fff',
+    border: 'none',
+    borderRadius: '8px',
+    fontSize: '14px',
+    fontWeight: '600',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
   },
   loading: {
     textAlign: 'center',
-    padding: '40px',
+    padding: '60px',
     fontSize: '18px',
     color: '#95a5a6',
   },
@@ -158,86 +256,189 @@ function Reports() {
     }
   };
 
+  const handlePrint = () => {
+    window.print();
+  };
+
+  const getScoreColor = (score) => {
+    if (!score) return '#95a5a6';
+    if (score >= 80) return '#27ae60';
+    if (score >= 60) return '#f39c12';
+    return '#e74c3c';
+  };
+
   if (loading) {
-    return <div style={styles.loading}>Loading...</div>;
+    return <div style={styles.loading}>⏳ Loading startups...</div>;
   }
 
   return (
     <div style={styles.container}>
-      <h1 style={styles.title}>Investor Reports</h1>
+      <div style={styles.header} className="no-print">
+        <h1 style={styles.title}>📊 Investor Reports</h1>
+        <p style={styles.subtitle}>
+          Generate comprehensive investment analysis reports for your portfolio startups
+        </p>
+      </div>
 
-      <div style={styles.selectionSection}>
-        <h3 style={styles.sectionTitle}>Select Startups for Report</h3>
+      <div style={styles.selectionSection} className="no-print">
+        <h3 style={styles.sectionTitle}>
+          <span>✓</span> Select Startups for Report
+        </h3>
         <div style={styles.checkboxGrid}>
           {startups.map(startup => (
-            <label key={startup.id} style={styles.checkboxLabel}>
+            <label
+              key={startup.id}
+              style={{
+                ...styles.checkboxLabel,
+                ...(selectedIds.includes(startup.id) ? styles.checkboxLabelSelected : {})
+              }}
+            >
               <input
                 type="checkbox"
                 checked={selectedIds.includes(startup.id)}
                 onChange={() => toggleStartup(startup.id)}
                 style={styles.checkbox}
               />
-              <span>{startup.name}</span>
+              <span style={styles.startupName}>{startup.name}</span>
             </label>
           ))}
         </div>
-        <button
-          onClick={handleGenerate}
-          disabled={generating || selectedIds.length === 0}
-          style={{
-            ...styles.button,
-            ...(generating || selectedIds.length === 0 ? styles.buttonDisabled : {})
-          }}
-        >
-          {generating ? 'Generating Reports...' : '📄 Generate Reports'}
-        </button>
+        
+        <div style={styles.buttonContainer}>
+          <button
+            onClick={handleGenerate}
+            disabled={generating || selectedIds.length === 0}
+            style={{
+              ...styles.button,
+              ...(generating || selectedIds.length === 0 ? styles.buttonDisabled : {})
+            }}
+          >
+            {generating ? '⏳ Generating Reports...' : '📄 Generate Reports'}
+          </button>
+          
+          {selectedIds.length > 0 && (
+            <span style={styles.selectedCount}>
+              {selectedIds.length} startup{selectedIds.length !== 1 ? 's' : ''} selected
+            </span>
+          )}
+        </div>
       </div>
 
-      {reports.map(report => (
-        <div key={report.startup_id} style={styles.report}>
+      {reports.length > 0 && (
+        <div className="no-print" style={{ marginBottom: '20px', textAlign: 'right' }}>
+          <button onClick={handlePrint} style={styles.printButton}>
+            <span>🖨️</span> Print / Save as PDF
+          </button>
+        </div>
+      )}
+
+      {reports.map((report, index) => (
+        <div key={report.startup_id || index} style={styles.report}>
           <div style={styles.reportHeader}>
             <h2 style={styles.reportTitle}>{report.startup_name}</h2>
             <div style={styles.reportSubtitle}>
-              Investment Analysis Report • Generated {new Date().toLocaleDateString()}
+              <span>📋</span> Investment Analysis Report
+              <span>•</span>
+              <span>📅 {new Date().toLocaleDateString('en-US', { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+              })}</span>
             </div>
           </div>
 
+          {report.score_breakdown && (
+            <div style={styles.scoreCard}>
+              {report.overall_score && (
+                <div style={styles.scoreItem}>
+                  <div style={styles.scoreLabel}>Overall Score</div>
+                  <div style={{
+                    ...styles.scoreValue,
+                    color: getScoreColor(report.overall_score)
+                  }}>
+                    {report.overall_score.toFixed(1)}
+                  </div>
+                </div>
+              )}
+              {report.confidence_level && (
+                <div style={styles.scoreItem}>
+                  <div style={styles.scoreLabel}>Confidence</div>
+                  <div style={styles.scoreValue}>{report.confidence_level}</div>
+                </div>
+              )}
+            </div>
+          )}
+
           {report.executive_summary && (
             <div style={styles.section}>
-              <h3 style={styles.sectionHeading}>Executive Summary</h3>
-              <p style={styles.text}>{report.executive_summary}</p>
+              <h3 style={styles.sectionHeading}>
+                <span>🎯</span> Executive Summary
+              </h3>
+              <ScoreAnalysis reasoning={report.executive_summary} />
             </div>
           )}
 
           {report.score_breakdown && (
             <div style={styles.section}>
-              <h3 style={styles.sectionHeading}>Score Breakdown</h3>
-              <p style={styles.text}>{report.score_breakdown}</p>
+              <h3 style={styles.sectionHeading}>
+                <span>📊</span> Score Breakdown
+              </h3>
+              <ScoreAnalysis reasoning={report.score_breakdown} />
             </div>
           )}
 
           {report.market_analysis && (
             <div style={styles.section}>
-              <h3 style={styles.sectionHeading}>Market Analysis</h3>
-              <p style={styles.text}>{report.market_analysis}</p>
+              <h3 style={styles.sectionHeading}>
+                <span>📈</span> Market Analysis
+              </h3>
+              <ScoreAnalysis reasoning={report.market_analysis} />
             </div>
           )}
 
           {report.swot_analysis && (
             <div style={styles.section}>
-              <h3 style={styles.sectionHeading}>SWOT Analysis</h3>
-              <p style={styles.text}>{report.swot_analysis}</p>
+              <h3 style={styles.sectionHeading}>
+                <span>⚖️</span> SWOT Analysis
+              </h3>
+              <ScoreAnalysis reasoning={report.swot_analysis} />
             </div>
           )}
 
           {report.recommendation && (
-            <div style={styles.recommendation}>
-              <h3 style={styles.sectionHeading}>Recommendation</h3>
-              <p style={styles.recommendationText}>{report.recommendation}</p>
+            <div style={{
+              ...styles.recommendation,
+              ...(report.recommendation.toLowerCase().includes('not recommend') || 
+                  report.recommendation.toLowerCase().includes('pass') ? 
+                  styles.recommendationBad : {})
+            }}>
+              <h3 style={styles.sectionHeading}>
+                <span>💡</span> Investment Recommendation
+              </h3>
+              <p style={{
+                ...styles.recommendationText,
+                ...(report.recommendation.toLowerCase().includes('not recommend') || 
+                    report.recommendation.toLowerCase().includes('pass') ? 
+                    styles.recommendationTextBad : styles.recommendationTextGood)
+              }}>
+                {report.recommendation}
+              </p>
             </div>
           )}
         </div>
       ))}
+
+      <style>{`
+        @media print {
+          .no-print {
+            display: none !important;
+          }
+          body {
+            print-color-adjust: exact;
+            -webkit-print-color-adjust: exact;
+          }
+        }
+      `}</style>
     </div>
   );
 }
