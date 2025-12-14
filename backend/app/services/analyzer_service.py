@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from ..models.models import Analysis, Startup
 from .llm_service import llm_service
 from .rag_service import rag_service
+from .search_service import search_service  # ✅ NEW IMPORT
 
 
 class AnalyzerService:
@@ -14,7 +15,7 @@ class AnalyzerService:
         startup_id: int,
         analysis_type: str = "comprehensive"
     ) -> Analysis:
-        """Perform comprehensive startup analysis"""
+        """Perform comprehensive startup analysis with web validation"""
         
         print(f"\n{'='*60}")
         print(f"🔬 ANALYSIS START: Startup {startup_id}")
@@ -26,6 +27,9 @@ class AnalyzerService:
             raise ValueError("Startup not found")
         
         print(f"📊 Startup: {startup.name}")
+        
+        # ✅ NEW: Get web validation BEFORE analysis
+        web_validation = await self._get_web_validation(startup)
         
         # Define analysis queries based on type
         queries = self._get_analysis_queries(analysis_type)
@@ -54,10 +58,12 @@ class AnalyzerService:
                 print(f"❌ No context found - skipping query")
                 continue
             
+            # ✅ MODIFIED: Pass web_validation to LLM
             result = await llm_service.analyze_with_context(
                 query=query,
                 context_chunks=context,
-                analysis_type=analysis_type
+                analysis_type=analysis_type,
+                web_validation=web_validation  # ✅ NEW PARAMETER
             )
             all_insights.append(result)
         
@@ -78,7 +84,11 @@ class AnalyzerService:
             weaknesses=aggregated.get("weaknesses", []),
             opportunities=aggregated.get("opportunities", []),
             threats=aggregated.get("threats", []),
-            context_used={"chunks": len(context_docs), "total_chars": sum(len(c) for c in context_docs)},
+            context_used={
+                "chunks": len(context_docs),
+                "total_chars": sum(len(c) for c in context_docs),
+                "web_validation": bool(web_validation)  # ✅ Track if web search was used
+            },
             confidence_score=aggregated.get("confidence", 0.8),
             raw_response=str(all_insights)
         )
@@ -88,10 +98,29 @@ class AnalyzerService:
         db.refresh(analysis)
         
         print(f"\n{'='*60}")
-        print(f"✅ ANALYSIS COMPLETE")
+        print(f"✅ ANALYSIS COMPLETE (with web validation)")
         print(f"{'='*60}\n")
         
         return analysis
+    
+    # ✅ NEW METHOD
+    async def _get_web_validation(self, startup: Startup) -> str:
+        """Get web search validation for startup claims"""
+        try:
+            print(f"\n🌐 Fetching web validation...")
+            
+            validation = await search_service.validate_startup_claims(
+                startup_name=startup.name,
+                industry=startup.industry if hasattr(startup, 'industry') else None,
+                founder_names=None  # TODO: Extract from docs if needed
+            )
+            
+            print(f"✅ Web validation retrieved ({len(validation)} chars)")
+            return validation
+            
+        except Exception as e:
+            print(f"⚠️ Web validation failed (continuing with docs only): {e}")
+            return ""  # Graceful degradation
     
     def _get_analysis_queries(self, analysis_type: str) -> List[str]:
         """Get relevant queries for analysis type"""

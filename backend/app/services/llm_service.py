@@ -191,9 +191,10 @@ CRITICAL INSTRUCTIONS:
         self,
         query: str,
         context_chunks: List[str],
-        analysis_type: str = "general"
+        analysis_type: str = "general",
+        web_validation: str = ""
     ) -> Dict[str, Any]:
-        """Analyze with RAG context"""
+        """Analyze with RAG context AND web validation"""
         
         # Check if context is empty
         if not context_chunks or sum(len(c) for c in context_chunks) < 50:
@@ -208,41 +209,54 @@ CRITICAL INSTRUCTIONS:
         
         context = "\n\n---DOCUMENT CHUNK---\n\n".join(context_chunks)
         
-        prompt = f"""You are an expert startup analyst. Your task is to analyze ONLY based on the provided context.
+        # ✅ IMPROVED SYSTEM PROMPT
+        prompt = f"""You are an expert startup analyst with access to TWO sources of truth:
 
-    CRITICAL RULES:
-    1. Use ONLY information from the context below
-    2. If the context doesn't contain information to answer the question, say "Information not available"
-    3. DO NOT invent, assume, or hallucinate any facts
-    4. DO NOT use general knowledge about startups
-    5. If you're unsure, say so explicitly
+    SOURCE 1 (Internal Documents - Primary):
+    {context}
+
+    SOURCE 2 (Web Validation - Secondary):
+    {web_validation if web_validation else "No web validation available"}
+
+    CRITICAL ANALYSIS RULES:
+    1. Use ONLY information from SOURCE 1 (documents) as the base truth
+    2. Use SOURCE 2 (web) to VALIDATE and FLAG DISCREPANCIES
+    3. If web results contradict the deck:
+    - Hidden competitors → Add to "risks"
+    - Different market size → Flag in "weaknesses"
+    - Bad reviews/down website → Add to "threats"
+    4. DO NOT invent facts - only use what's in the sources
+    5. If unsure, say "Information not available"
 
     Analysis Type: {analysis_type}
     Question: {query}
 
-    Respond in valid JSON:
+    CRITICAL JSON FORMATTING RULES:
+    - Return ONLY valid JSON, no markdown, no explanations
+    - Use single quotes in text content (not double quotes)
+    - Keep text short (max 100 chars per item)
+    - Escape ALL special characters
+    - No line breaks inside strings
+    - No trailing commas
+
+    Respond in this EXACT format:
     {{
-    "summary": "2-3 sentences based ONLY on context",
-    "key_insights": ["insight from context", "another from context"],
-    "strengths": ["strength mentioned in context"],
-    "weaknesses": ["weakness from context"],
-    "opportunities": ["opportunity from context"],
-    "risks": ["risk mentioned in context"]
+    "summary": "Brief 2-3 sentence summary",
+    "key_insights": ["insight 1", "insight 2"],
+    "strengths": ["strength 1"],
+    "weaknesses": ["weakness 1"],
+    "opportunities": ["opportunity 1"],
+    "risks": ["risk 1"]
     }}
 
-    If the context is empty or doesn't address the question, return:
-    {{
-    "summary": "Information not available in provided documents",
-    "key_insights": ["No relevant information found"],
-    "strengths": [],
-    "weaknesses": [],
-    "opportunities": [],
-    "risks": []
-    }}"""
+    Example of GOOD response:
+    {{"summary": "This startup shows promise in the AI market.", "key_insights": ["Strong team", "Large market"], "strengths": ["Experienced founders"], "weaknesses": ["Limited traction"], "opportunities": ["Growing market"], "risks": ["High competition"]}}
+
+    CRITICAL: If web validation shows MAJOR red flags, include in risks as: "CRITICAL RISK: description"."""
 
         return await self.generate_structured(
             prompt=prompt,
-            context=context
+            context=None  # Already included in prompt
         )
 
 
