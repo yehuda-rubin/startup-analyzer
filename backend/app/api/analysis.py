@@ -39,6 +39,7 @@ async def analyze_startup(
             "opportunities": analysis.opportunities,
             "threats": analysis.threats,
             "confidence_score": analysis.confidence_score,
+            "web_validation_summary": analysis.web_validation_summary,  # ← 🆕 הוסף!
             "created_at": analysis.created_at.isoformat()
         }
     except Exception as e:
@@ -67,6 +68,7 @@ async def get_startup_analyses(
             "threats": analysis.threats,  # ← הוספתי!
             "risks": analysis.risks if hasattr(analysis, 'risks') else None,  # ← הוספתי!
             "confidence_score": analysis.confidence_score,  # ← הוספתי!
+            "web_validation_summary": analysis.web_validation_summary,  # ← 🆕 הוסף!
             "created_at": analysis.created_at.isoformat()
         }
         for analysis in analyses
@@ -94,5 +96,6 @@ async def get_analysis(
         "opportunities": analysis.opportunities,
         "threats": analysis.threats,
         "confidence_score": analysis.confidence_score,
+        "web_validation_summary": analysis.web_validation_summary,  # ← 🆕 הוסף!
         "created_at": analysis.created_at.isoformat()
     }

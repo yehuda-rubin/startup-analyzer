@@ -59,7 +59,8 @@ class Analysis(Base):
     confidence_score = Column(Float)
     
     raw_response = Column(Text)
-    meta_data = Column(JSON)  # ✅ שונה
+    web_validation_summary = Column(Text)  # ← 🆕 הוסף את השורה הזו!
+    meta_data = Column(JSON)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     
     startup = relationship("Startup", back_populates="analyses")

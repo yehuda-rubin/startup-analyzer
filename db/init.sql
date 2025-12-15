@@ -45,10 +45,10 @@ CREATE TABLE IF NOT EXISTS analyses (
     context_used JSONB,
     confidence_score FLOAT,
     raw_response TEXT,
+    web_validation_summary TEXT,  -- ← הוסף את השורה הזו!
     meta_data JSONB,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
-
 -- Scores table
 CREATE TABLE IF NOT EXISTS scores (
     id SERIAL PRIMARY KEY,

@@ -90,7 +90,8 @@ class AnalyzerService:
                 "web_validation": bool(web_validation)  # ✅ Track if web search was used
             },
             confidence_score=aggregated.get("confidence", 0.8),
-            raw_response=str(all_insights)
+            raw_response=str(all_insights),
+            web_validation_summary=web_validation  # ← 🆕 הוסף את השורה הזו!
         )
         
         db.add(analysis)

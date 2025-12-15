@@ -151,10 +151,12 @@ function Analysis() {
     try {
       // Load latest analysis
       const analyses = await getStartupAnalyses(parseInt(selectedStartupId));
+      console.log('🔍 Analyses received:', analyses); // ← הוסף את זה!
+      
       if (analyses.length > 0) {
-        const latestAnalysis = analyses[0];
-        const fullAnalysis = await getStartupAnalyses(latestAnalysis.id);
-        setAnalysis(fullAnalysis[0]);
+        console.log('✅ First analysis:', analyses[0]); // ← הוסף את זה!
+        console.log('✅ Has web_validation_summary?', !!analyses[0].web_validation_summary); // ← הוסף את זה!
+        setAnalysis(analyses[0]);
       } else {
         setAnalysis(null);
       }
@@ -282,6 +284,40 @@ function Analysis() {
                 <div style={styles.sectionTitle}>Executive Summary</div>
                 <p style={styles.text}>{analysis.summary}</p>
               </div>
+
+              {/* 🆕 הוספנו Web Validation Display */}
+              {analysis.web_validation_summary && (
+                <div style={styles.section}>
+                  <div style={{
+                    ...styles.sectionTitle,
+                    color: '#3498db',
+                    fontSize: '18px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    borderTop: '2px solid #ecf0f1',
+                    paddingTop: '20px',
+                    marginTop: '20px'
+                  }}>
+                    <span>🌐</span> Web Validation Results
+                  </div>
+                  <div style={{
+                    ...styles.text,
+                    backgroundColor: '#f8f9fa',
+                    padding: '15px',
+                    borderRadius: '6px',
+                    border: '1px solid #e0e0e0',
+                    fontFamily: 'monospace',
+                    fontSize: '13px',
+                    whiteSpace: 'pre-wrap',
+                    lineHeight: '1.6',
+                    maxHeight: '400px',
+                    overflowY: 'auto'
+                  }}>
+                    {analysis.web_validation_summary}
+                  </div>
+                </div>
+              )}
 
               {analysis.key_insights && analysis.key_insights.length > 0 && (
                 <div style={styles.section}>
