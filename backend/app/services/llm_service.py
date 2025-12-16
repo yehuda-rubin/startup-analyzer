@@ -44,7 +44,7 @@ class LLMService:
         prompt: str,
         context: Optional[str] = None,
         temperature: float = 0.7,
-        max_tokens: int = 2048
+        max_tokens: int = 8000
     ) -> str:
         """Generate text using Gemini"""
         try:

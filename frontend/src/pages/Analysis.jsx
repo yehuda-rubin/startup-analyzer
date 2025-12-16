@@ -285,40 +285,6 @@ function Analysis() {
                 <p style={styles.text}>{analysis.summary}</p>
               </div>
 
-              {/* 🆕 הוספנו Web Validation Display */}
-              {analysis.web_validation_summary && (
-                <div style={styles.section}>
-                  <div style={{
-                    ...styles.sectionTitle,
-                    color: '#3498db',
-                    fontSize: '18px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    borderTop: '2px solid #ecf0f1',
-                    paddingTop: '20px',
-                    marginTop: '20px'
-                  }}>
-                    <span>🌐</span> Web Validation Results
-                  </div>
-                  <div style={{
-                    ...styles.text,
-                    backgroundColor: '#f8f9fa',
-                    padding: '15px',
-                    borderRadius: '6px',
-                    border: '1px solid #e0e0e0',
-                    fontFamily: 'monospace',
-                    fontSize: '13px',
-                    whiteSpace: 'pre-wrap',
-                    lineHeight: '1.6',
-                    maxHeight: '400px',
-                    overflowY: 'auto'
-                  }}>
-                    {analysis.web_validation_summary}
-                  </div>
-                </div>
-              )}
-
               {analysis.key_insights && analysis.key_insights.length > 0 && (
                 <div style={styles.section}>
                   <div style={styles.sectionTitle}>Key Insights</div>
