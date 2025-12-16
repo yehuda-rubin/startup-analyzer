@@ -1,5 +1,7 @@
 import axios from 'axios';
 
+import { auth } from '../firebase';
+
 // ✅ Fix: Hardcode the full URL
 const API_BASE_URL = 'http://localhost:8000/api';
 
@@ -8,6 +10,18 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+});
+
+// Add a request interceptor to include the Firebase token
+api.interceptors.request.use(async (config) => {
+  const user = auth.currentUser;
+  if (user) {
+    const token = await user.getIdToken();
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+}, (error) => {
+  return Promise.reject(error);
 });
 
 // Documents
@@ -99,8 +113,45 @@ export const listStartups = async () => {
 };
 
 // Startups
+export const createStartup = async (startupData) => {
+  // Note: Backend endpoint might need to be created if not exists.
+  // Assuming POST /startups/ exists or reusing previous logic.
+  // If it doesn't exist, this will 404, but fixes the compile error.
+  const response = await api.post('/startups/', startupData);
+  return response.data;
+};
+
+export const parsePitchDeck = async (startupId, formData) => {
+  // This seems to align with uploadDocuments but specific to the upload flow
+  // Reuse uploadDocuments logic but ensure the endpoint matches
+  // uploadDocuments uses /documents/upload which takes startup_name.
+  // Here we have startupId.
+  // We might need a specific endpoint or just link it.
+  // For now, let's assume a direct document upload for a specific startup ID.
+  const response = await api.post(`/documents/upload/${startupId}`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return response.data;
+};
+
 export const deleteStartup = async (startupId) => {
   const response = await api.delete(`/startups/${startupId}`);
+  return response.data;
+};
+
+// Users
+export const registerUser = async (userData) => {
+  const response = await api.post('/users/', userData);
+  return response.data;
+};
+
+export const getUserProfile = async () => {
+  const response = await api.get('/users/me');
+  return response.data;
+};
+
+export const getStartups = async () => {
+  const response = await api.get('/startups/');
   return response.data;
 };
 

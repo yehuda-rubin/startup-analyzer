@@ -4,10 +4,22 @@ from sqlalchemy.sql import func
 from ..database import Base
 
 
+class User(Base):
+    __tablename__ = "users"
+
+    firebase_uid = Column(String(128), primary_key=True)
+    email = Column(String(255), nullable=False)
+    role = Column(String(50), nullable=False) # 'entrepreneur' or 'investor'
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    
+    startups = relationship("Startup", back_populates="user")
+
+
 class Startup(Base):
     __tablename__ = "startups"
     
     id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(String(128), ForeignKey("users.firebase_uid"), nullable=True) # nullable=True for existing records
     name = Column(String(255), nullable=False, index=True)
     description = Column(Text)
     industry = Column(String(100))
@@ -18,6 +30,7 @@ class Startup(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     
+    user = relationship("User", back_populates="startups")
     documents = relationship("Document", back_populates="startup", cascade="all, delete-orphan")
     analyses = relationship("Analysis", back_populates="startup", cascade="all, delete-orphan")
     scores = relationship("Score", back_populates="startup", cascade="all, delete-orphan")

@@ -3,12 +3,39 @@ from sqlalchemy.orm import Session
 from typing import List
 
 from ..database import get_db
-from ..models.models import Startup, Document, Analysis, Score, MarketAnalysis
+from ..models.models import Startup, Document, Analysis, Score, MarketAnalysis, User
 from ..services.rag_service import rag_service
+from ..utils.auth import verify_firebase_token  # Import auth dependency
 import os
 import shutil
 
 router = APIRouter()
+
+@router.get("/", response_model=List[dict]) # Adjust response model as needed, using dict for simplicity or create a proper Pydantic model
+async def get_startups(
+    db: Session = Depends(get_db),
+    token: dict = Depends(verify_firebase_token)
+):
+    """
+    Get all startups.
+    - If user is 'investor': Returns all startups.
+    - If user is 'entrepreneur': Returns only their startups.
+    """
+    uid = token.get("uid")
+    # Fetch user role from DB (safer than trusting token claims if claims aren't custom set)
+    user = db.query(User).filter(User.firebase_uid == uid).first()
+    
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    if user.role == "investor":
+        startups = db.query(Startup).all()
+    elif user.role == "entrepreneur":
+        startups = db.query(Startup).filter(Startup.user_id == uid).all()
+    else:
+        startups = []
+        
+    return startups
 
 
 @router.delete("/{startup_id}")
