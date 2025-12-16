@@ -12,6 +12,7 @@ Thumbs.db
 .env.*.local
 *.pem
 *.key
+docker-compose.yml
 
 # --- Python (Backend) ---
 # מתעלם מקבצים מקומפלים (ראיתי הרבה כאלה בתיקיות __pycache__ בתמונות)
