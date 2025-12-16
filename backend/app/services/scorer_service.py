@@ -261,8 +261,10 @@ Example:
                 "Differentiation from competitors"
             ],
             "market_score": [
-                "Total addressable market size (TAM > $1B)",
-                "Market growth rate (> 10% annually)",
+                "⚠️ CRITICAL: Compare claimed TAM/SAM/SOM against web validation data",
+                "If claimed market > 2x validated market → Significant penalty (-20 to -40 points)",
+                "If claimed market > 5x validated market → Severe penalty (-40 to -60 points)",
+                "Market growth rate validation (> 10% annually)",
                 "Market timing and trends",
                 "Market accessibility and barriers to entry"
             ],
@@ -289,53 +291,119 @@ Example:
         criteria = criteria_map.get(category, [])
         criteria_text = "\n".join(f"- {c}" for c in criteria)
         
+        # ✅ SPECIAL HANDLING FOR MARKET SCORE
+        if category == "market_score":
+            return f"""You are an expert startup investor performing CRITICAL MARKET VALIDATION.
+
+    SOURCE 1 (STARTUP CLAIMS - May be inflated):
+    {context_text}
+
+    SOURCE 2 (WEB VALIDATION - Actual market data):
+    {web_validation if web_validation else "No web validation available"}
+
+    YOUR MISSION: FACT-CHECK THE MARKET SIZE CLAIMS
+
+    EVALUATION CRITERIA:
+    {criteria_text}
+
+    ⚠️ CRITICAL MARKET VALIDATION RULES:
+    1. Extract claimed TAM/SAM/SOM from SOURCE 1
+    2. Extract actual market size from SOURCE 2 (look for "market size", "TAM", "industry value")
+    3. COMPARE and PENALIZE inflated claims:
+    
+    IF claimed market is 2-5x larger than validated:
+    → Base score: 60-70 (inflated but not absurd)
+    → Flag: "Market size appears inflated"
+    
+    IF claimed market is 5-10x larger than validated:
+    → Base score: 40-60 (severely inflated)
+    → Flag: "Market size significantly overstated"
+    
+    IF claimed market is 10x+ larger than validated:
+    → Base score: 20-40 (unrealistic)
+    → Flag: "Market size grossly exaggerated"
+
+    4. If web validation is missing or unclear, score conservatively (60-70)
+    5. If startup provides NO market data, score 50
+
+    SCORING EXAMPLES:
+
+    Example 1 - Realistic:
+    Deck: "Risk management software TAM: $5B"
+    Web: "Risk management software market: $3.68B in 2024"
+    → Score: 75 (close to reality, 1.4x multiple is acceptable)
+
+    Example 2 - Inflated:
+    Deck: "E-commerce fraud prevention TAM: $25B"
+    Web: "Financial risk management software: $3.68B in 2024"
+    → Score: 55 (7x inflation, significantly overstated)
+
+    Example 3 - Severely Inflated:
+    Deck: "AI productivity tools TAM: $500B"
+    Web: "Productivity software market: $50B in 2024"
+    → Score: 35 (10x inflation, grossly exaggerated)
+
+    JUSTIFICATION MUST INCLUDE:
+    - Claimed market size from deck
+    - Actual market size from web
+    - Calculation showing the multiple (e.g., "claimed 7x larger")
+    - Clear statement if market is inflated
+
+    Respond with valid JSON:
+    {{
+    "score": <number 0-100>,
+    "justification": "The deck claims a TAM of $[X]B, but web validation shows the actual [specific market segment] market is $[Y]B in 2024 (claimed [Z]x larger). [VERDICT]",
+    "key_factors": ["Claimed market: $XB", "Actual market: $YB", "Inflation multiple: Zx"]
+    }}"""
+        
+        # STANDARD PROMPT FOR OTHER CATEGORIES
         return f"""You are an expert startup investor. Score this startup on the {category.replace('_', ' ').title()} dimension.
 
-SOURCE 1 (INTERNAL DOCUMENTS - Primary Truth):
-{context_text}
+    SOURCE 1 (INTERNAL DOCUMENTS - Primary Truth):
+    {context_text}
 
-SOURCE 2 (WEB VALIDATION - Reality Check):
-{web_validation if web_validation else "No web validation available"}
+    SOURCE 2 (WEB VALIDATION - Reality Check):
+    {web_validation if web_validation else "No web validation available"}
 
-EVALUATION CRITERIA:
-{criteria_text}
+    EVALUATION CRITERIA:
+    {criteria_text}
 
-CRITICAL SCORING RULES:
-1. Base score on SOURCE 1 (documents)
-2. Use SOURCE 2 to VALIDATE and ADJUST:
-   - If web shows market is smaller than claimed → REDUCE market_score
-   - If web reveals hidden strong competitors → REDUCE product_score/market_score
-   - If web shows negative reviews/red flags → REDUCE team_score/traction_score
-   - If web validates strong claims → MAINTAIN or INCREASE score
-3. PENALIZE discrepancies between deck and reality
+    CRITICAL SCORING RULES:
+    1. Base score on SOURCE 1 (documents)
+    2. Use SOURCE 2 to VALIDATE and ADJUST:
+    - If web shows market is smaller than claimed → REDUCE market_score
+    - If web reveals hidden strong competitors → REDUCE product_score/market_score
+    - If web shows negative reviews/red flags → REDUCE team_score/traction_score
+    - If web validates strong claims → MAINTAIN or INCREASE score
+    3. PENALIZE discrepancies between deck and reality
 
-SCORING SCALE:
-- 90-100: Exceptional - Best in class, unicorn potential
-- 80-89: Excellent - Strong fundamentals, top 10%
-- 70-79: Good - Above average, solid investment
-- 60-69: Adequate - Average, meets expectations
-- 50-59: Below Average - Significant gaps or unvalidated claims
-- 0-49: Weak - Critical deficiencies or major red flags
+    SCORING SCALE:
+    - 90-100: Exceptional - Best in class, unicorn potential
+    - 80-89: Excellent - Strong fundamentals, top 10%
+    - 70-79: Good - Above average, solid investment
+    - 60-69: Adequate - Average, meets expectations
+    - 50-59: Below Average - Significant gaps or unvalidated claims
+    - 0-49: Weak - Critical deficiencies or major red flags
 
-IMPORTANT:
-- Be objective but not overly conservative
-- 50 is BELOW AVERAGE, not neutral
-- Give credit for concrete achievements (patents, metrics, traction)
-- REDUCE score if web validation contradicts deck claims
+    IMPORTANT:
+    - Be objective but not overly conservative
+    - 50 is BELOW AVERAGE, not neutral
+    - Give credit for concrete achievements (patents, metrics, traction)
+    - REDUCE score if web validation contradicts deck claims
 
-Respond with valid JSON:
-{{
-  "score": <number 0-100>,
-  "justification": "2-3 sentence explanation citing specific evidence from context AND web validation",
-  "key_factors": ["factor 1", "factor 2", "factor 3"]
-}}
+    Respond with valid JSON:
+    {{
+    "score": <number 0-100>,
+    "justification": "2-3 sentence explanation citing specific evidence from context AND web validation",
+    "key_factors": ["factor 1", "factor 2", "factor 3"]
+    }}
 
-Example with web validation impact:
-{{
-  "score": 65,
-  "justification": "The deck claims a $25B TAM, but web validation shows the actual risk management software market is only $3.68B in 2024. The team has strong technical credentials (8200 alumni CEO), but the market opportunity appears significantly overstated.",
-  "key_factors": ["Market size overstated", "Strong technical team", "Limited market validation"]
-}}"""
+    Example with web validation impact:
+    {{
+    "score": 65,
+    "justification": "The deck claims a $25B TAM, but web validation shows the actual risk management software market is only $3.68B in 2024. The team has strong technical credentials (8200 alumni CEO), but the market opportunity appears significantly overstated.",
+    "key_factors": ["Market size overstated", "Strong technical team", "Limited market validation"]
+    }}"""
     
     def _calculate_confidence(self, scores: Dict[str, float]) -> str:
         """Calculate confidence level based on score variance"""

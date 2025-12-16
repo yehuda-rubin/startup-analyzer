@@ -105,6 +105,12 @@ class MarketAnalysis(Base):
     tam_description = Column(Text)
     sam_description = Column(Text)
     som_description = Column(Text)
+
+    # ✅ הוסף את השדות האלה:
+    validated_tam = Column(Float, default=0)
+    validated_sam = Column(Float, default=0)
+    validated_som = Column(Float, default=0)
+    validation_source = Column(Text)
     
     market_size_reasoning = Column(Text)
     growth_rate = Column(Float)

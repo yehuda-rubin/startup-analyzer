@@ -85,6 +85,10 @@ CREATE TABLE IF NOT EXISTS market_analyses (
     competitive_advantages JSONB,
     data_sources JSONB,
     confidence_score FLOAT,
+    validated_tam FLOAT DEFAULT 0,
+    validated_sam FLOAT DEFAULT 0,
+    validated_som FLOAT DEFAULT 0,
+    validation_source TEXT,
     meta_data JSONB,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );

@@ -209,7 +209,7 @@ CRITICAL INSTRUCTIONS:
         
         context = "\n\n---DOCUMENT CHUNK---\n\n".join(context_chunks)
         
-        # ✅ IMPROVED SYSTEM PROMPT
+        # ✅ IMPROVED SYSTEM PROMPT WITH MARKET VALIDATION
         prompt = f"""You are an expert startup analyst with access to TWO sources of truth:
 
     SOURCE 1 (Internal Documents - Primary):
@@ -221,12 +221,17 @@ CRITICAL INSTRUCTIONS:
     CRITICAL ANALYSIS RULES:
     1. Use ONLY information from SOURCE 1 (documents) as the base truth
     2. Use SOURCE 2 (web) to VALIDATE and FLAG DISCREPANCIES
-    3. If web results contradict the deck:
+    3. **MARKET SIZE VALIDATION (CRITICAL):**
+    - If startup claims TAM/SAM/SOM → Compare with web validation
+    - If web shows market is 2-5x smaller → Add to "weaknesses": "Market size appears inflated by [X]x"
+    - If web shows market is 5-10x smaller → Add to "weaknesses": "Market size significantly overstated by [X]x"
+    - If web shows market is 10x+ smaller → Add to "risks": "CRITICAL: Market size grossly exaggerated by [X]x"
+    4. If web results contradict the deck:
     - Hidden competitors → Add to "risks"
     - Different market size → Flag in "weaknesses"
     - Bad reviews/down website → Add to "threats"
-    4. DO NOT invent facts - only use what's in the sources
-    5. If unsure, say "Information not available"
+    5. DO NOT invent facts - only use what's in the sources
+    6. If unsure, say "Information not available"
 
     Analysis Type: {analysis_type}
     Question: {query}
@@ -249,16 +254,15 @@ CRITICAL INSTRUCTIONS:
     "risks": ["risk 1"]
     }}
 
-    Example of GOOD response:
-    {{"summary": "This startup shows promise in the AI market.", "key_insights": ["Strong team", "Large market"], "strengths": ["Experienced founders"], "weaknesses": ["Limited traction"], "opportunities": ["Growing market"], "risks": ["High competition"]}}
+    Example with market validation:
+    {{"summary": "This startup shows promise in the AI market.", "key_insights": ["Strong team", "Large market"], "strengths": ["Experienced founders"], "weaknesses": ["Market size overstated: Claimed $25B TAM vs validated $3.68B (6.8x inflation)"], "opportunities": ["Growing market"], "risks": ["High competition"]}}
 
-    CRITICAL: If web validation shows MAJOR red flags, include in risks as: "CRITICAL RISK: description"."""
+    CRITICAL: If web validation shows MAJOR red flags about market size, include in both weaknesses AND risks."""
 
         return await self.generate_structured(
             prompt=prompt,
             context=None  # Already included in prompt
         )
-
 
 # Singleton instance
 llm_service = LLMService()
