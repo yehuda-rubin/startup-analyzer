@@ -51,10 +51,29 @@ const styles = {
   },
 };
 
+// Helper function to format scores
+const formatScore = (score) => {
+  if (score === null || score === undefined) return '0';
+  const num = Number(score);
+  if (isNaN(num)) return '0';
+  
+  // Round to 2 decimals
+  const rounded = Math.round(num * 100) / 100;
+  
+  // If it's a whole number, show without decimals
+  if (rounded % 1 === 0) {
+    return rounded.toString();
+  }
+  
+  // Otherwise show with up to 2 decimals, removing trailing zeros
+  return rounded.toFixed(2).replace(/\.?0+$/, '');
+};
+
 function ScoreGauge({ overall_score, category_scores, showBreakdown = false }) {
   const getColor = (score) => {
-    if (score >= 80) return '#27ae60';
-    if (score >= 60) return '#f39c12';
+    const num = Number(score) || 0;
+    if (num >= 80) return '#27ae60';
+    if (num >= 60) return '#f39c12';
     return '#e74c3c';
   };
 
@@ -66,6 +85,8 @@ function ScoreGauge({ overall_score, category_scores, showBreakdown = false }) {
     { name: 'Financials', score: category_scores.financials },
     { name: 'Innovation', score: category_scores.innovation },
   ] : [];
+
+  const overallScoreNum = Number(overall_score) || 0;
 
   return (
     <div style={styles.container}>
@@ -83,38 +104,41 @@ function ScoreGauge({ overall_score, category_scores, showBreakdown = false }) {
           <path
             d="M 20 100 A 80 80 0 0 1 180 100"
             fill="none"
-            stroke={getColor(overall_score)}
+            stroke={getColor(overallScoreNum)}
             strokeWidth="20"
             strokeLinecap="round"
-            strokeDasharray={`${(overall_score / 100) * 251.2} 251.2`}
+            strokeDasharray={`${(overallScoreNum / 100) * 251.2} 251.2`}
           />
         </svg>
         <div style={{
           ...styles.score,
-          color: getColor(overall_score)
+          color: getColor(overallScoreNum)
         }}>
-          {overall_score.toFixed(1)}
+          {formatScore(overallScoreNum)}
         </div>
       </div>
       <div style={styles.label}>Overall Score</div>
 
       {showBreakdown && category_scores && (
         <div style={styles.breakdown}>
-          {categories.map(cat => (
-            <div key={cat.name} style={styles.barContainer}>
-              <div style={styles.barLabel}>
-                <span>{cat.name}</span>
-                <span>{cat.score?.toFixed(0) || 0}</span>
+          {categories.map(cat => {
+            const catScore = Number(cat.score) || 0;
+            return (
+              <div key={cat.name} style={styles.barContainer}>
+                <div style={styles.barLabel}>
+                  <span>{cat.name}</span>
+                  <span>{formatScore(catScore)}</span>
+                </div>
+                <div style={styles.barBackground}>
+                  <div style={{
+                    ...styles.barFill,
+                    width: `${catScore}%`,
+                    backgroundColor: getColor(catScore)
+                  }} />
+                </div>
               </div>
-              <div style={styles.barBackground}>
-                <div style={{
-                  ...styles.barFill,
-                  width: `${cat.score || 0}%`,
-                  backgroundColor: getColor(cat.score || 0)
-                }} />
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

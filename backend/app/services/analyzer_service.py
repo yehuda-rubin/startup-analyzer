@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from ..models.models import Analysis, Startup
 from .llm_service import llm_service
 from .rag_service import rag_service
-from .search_service import search_service  # ✅ NEW IMPORT
+from .search_service import search_service
 
 
 class AnalyzerService:
@@ -28,8 +28,11 @@ class AnalyzerService:
         
         print(f"📊 Startup: {startup.name}")
         
-        # ✅ NEW: Get web validation BEFORE analysis
-        web_validation = await self._get_web_validation(startup)
+        # ✅ Step 1: Extract founder names
+        founder_names = await self._extract_founder_names(startup_id)
+        
+        # ✅ Step 2: Get web validation (with founder names)
+        web_validation = await self._get_web_validation(startup, founder_names)
         
         # Define analysis queries based on type
         queries = self._get_analysis_queries(analysis_type)
@@ -58,12 +61,11 @@ class AnalyzerService:
                 print(f"❌ No context found - skipping query")
                 continue
             
-            # ✅ MODIFIED: Pass web_validation to LLM
             result = await llm_service.analyze_with_context(
                 query=query,
                 context_chunks=context,
                 analysis_type=analysis_type,
-                web_validation=web_validation  # ✅ NEW PARAMETER
+                web_validation=web_validation
             )
             all_insights.append(result)
         
@@ -87,11 +89,11 @@ class AnalyzerService:
             context_used={
                 "chunks": len(context_docs),
                 "total_chars": sum(len(c) for c in context_docs),
-                "web_validation": bool(web_validation)  # ✅ Track if web search was used
+                "web_validation": bool(web_validation)
             },
             confidence_score=aggregated.get("confidence", 0.8),
             raw_response=str(all_insights),
-            web_validation_summary=web_validation  # ← 🆕 הוסף את השורה הזו!
+            web_validation_summary=web_validation
         )
         
         db.add(analysis)
@@ -104,8 +106,63 @@ class AnalyzerService:
         
         return analysis
     
-    # ✅ NEW METHOD
-    async def _get_web_validation(self, startup: Startup) -> str:
+    # ✅ NEW METHOD - חילוץ שמות מייסדים
+    async def _extract_founder_names(self, startup_id: int) -> List[str]:
+        """Extract founder names from documents using LLM"""
+        try:
+            print(f"\n👥 Extracting founder names...")
+            
+            # Get context about team/founders
+            context = await rag_service.get_context(
+                startup_id, 
+                "Who are the founders, CEO, CTO, and key team members? List their full names.",
+                max_chunks=3
+            )
+            
+            if not context or sum(len(c) for c in context) < 50:
+                print(f"⚠️ No team information found in documents")
+                return []
+            
+            context_text = "\n\n".join(context)
+            
+            # Ask LLM to extract names
+            prompt = f"""Extract the names of founders and key executives from this text.
+
+CONTEXT:
+{context_text}
+
+RULES:
+1. Return ONLY full names (first + last name)
+2. Include: Founders, CEO, CTO, key executives
+3. Do NOT include: advisors, investors, board members
+4. If no names found, return empty list
+
+Respond with ONLY valid JSON:
+{{"founder_names": ["Name 1", "Name 2"]}}
+
+Example:
+{{"founder_names": ["Danny Cohen", "Sara Levi"]}}"""
+
+            result = await llm_service.generate_structured(
+                prompt=prompt,
+                context=None
+            )
+            
+            names = result.get("founder_names", [])
+            
+            if names:
+                print(f"✅ Found {len(names)} founder(s): {', '.join(names)}")
+            else:
+                print(f"⚠️ No founder names extracted")
+            
+            return names
+            
+        except Exception as e:
+            print(f"⚠️ Founder extraction failed: {e}")
+            return []
+    
+    # ✅ UPDATED METHOD - מקבל founder_names
+    async def _get_web_validation(self, startup: Startup, founder_names: List[str] = None) -> str:
         """Get web search validation for startup claims"""
         try:
             print(f"\n🌐 Fetching web validation...")
@@ -113,7 +170,7 @@ class AnalyzerService:
             validation = await search_service.validate_startup_claims(
                 startup_name=startup.name,
                 industry=startup.industry if hasattr(startup, 'industry') else None,
-                founder_names=None  # TODO: Extract from docs if needed
+                founder_names=founder_names  # ✅ מעביר שמות מייסדים
             )
             
             print(f"✅ Web validation retrieved ({len(validation)} chars)")
@@ -121,7 +178,7 @@ class AnalyzerService:
             
         except Exception as e:
             print(f"⚠️ Web validation failed (continuing with docs only): {e}")
-            return ""  # Graceful degradation
+            return ""
     
     def _get_analysis_queries(self, analysis_type: str) -> List[str]:
         """Get relevant queries for analysis type"""

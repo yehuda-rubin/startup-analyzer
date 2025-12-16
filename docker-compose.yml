@@ -20,7 +20,7 @@ services:
     build: ./backend
     environment:
       - DATABASE_URL=postgresql://postgres:postgres@db:5432/startup_analyzer
-      - GOOGLE_API_KEY=AIzaSyA8XRhhGRWob4kxY-fz9ntwsCFTrXOazns
+      - GOOGLE_API_KEY=AIzaSyBoTUS9UPjq12pxffCcsvaiZRDCj9sQEiQ
       - TAVILY_API_KEY=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
       - GEMINI_MODEL=models/gemini-2.5-flash
     volumes:

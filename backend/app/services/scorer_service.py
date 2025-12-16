@@ -3,7 +3,7 @@ from typing import Dict, List, Any
 from ..models.models import Score, Startup
 from .llm_service import llm_service
 from .rag_service import rag_service
-from .search_service import search_service  # ✅ הוספה חדשה
+from .search_service import search_service
 
 
 class ScorerService:
@@ -18,6 +18,16 @@ class ScorerService:
         "financials_score": 0.10,
         "innovation_score": 0.10,
     }
+
+    def _format_score(self, score: float) -> str:
+        """Format score with max 2 decimals, removing trailing zeros"""
+        if score is None:
+            return "0"
+        rounded = round(score, 2)
+        if rounded == int(rounded):
+            return str(int(rounded))
+        formatted = f"{rounded:.2f}"
+        return formatted.rstrip('0').rstrip('.')
     
     async def score_startup(
         self,
@@ -37,8 +47,11 @@ class ScorerService:
         
         print(f"🏢 Startup: {startup.name}")
         
-        # ✅ NEW: Get web validation BEFORE scoring
-        web_validation = await self._get_web_validation(startup)
+        # ✅ Step 1: Extract founder names
+        founder_names = await self._extract_founder_names(startup_id)
+        
+        # ✅ Step 2: Get web validation (with founder names)
+        web_validation = await self._get_web_validation(startup, founder_names)
         
         # Score each category
         scores = {}
@@ -46,27 +59,27 @@ class ScorerService:
         for category, weight in self.WEIGHTS.items():
             print(f"\n--- Scoring {category} (weight: {weight*100}%) ---")
             
-            score = await self._score_category(startup_id, category, web_validation)  # ✅ העברת web_validation
+            score = await self._score_category(startup_id, category, web_validation)
             scores[category] = score
             
-            print(f"✅ {category}: {score}/100")
+            print(f"✅ {category}: {self._format_score(score)}/100")
         
         print(f"\n{'='*60}")
         print(f"📈 SCORES BREAKDOWN:")
         for cat, score in scores.items():
-            print(f"   {cat}: {score}/100")
+            print(f"   {cat}: {self._format_score(score)}/100")
         print(f"{'='*60}")
         
         # Calculate overall score
         overall = sum(scores[cat] * self.WEIGHTS[cat] for cat in self.WEIGHTS.keys())
         
-        print(f"\n🎯 Overall Score: {overall:.2f}/100")
+        print(f"\n🎯 Overall Score: {self._format_score(overall)}/100")
         
         # Determine confidence
         confidence = self._calculate_confidence(scores)
         
         # Generate reasoning (with web validation)
-        reasoning = await self._generate_reasoning(startup_id, scores, overall, web_validation)  # ✅ העברת web_validation
+        reasoning = await self._generate_reasoning(startup_id, scores, overall, web_validation)
         
         # Create score record
         score_record = Score(
@@ -94,8 +107,63 @@ class ScorerService:
         
         return score_record
     
-    # ✅ NEW METHOD
-    async def _get_web_validation(self, startup: Startup) -> str:
+    # ✅ NEW METHOD - חילוץ שמות מייסדים
+    async def _extract_founder_names(self, startup_id: int) -> List[str]:
+        """Extract founder names from documents using LLM"""
+        try:
+            print(f"\n👥 Extracting founder names...")
+            
+            # Get context about team/founders
+            context = await rag_service.get_context(
+                startup_id, 
+                "Who are the founders, CEO, CTO, and key team members? List their full names.",
+                max_chunks=3
+            )
+            
+            if not context or sum(len(c) for c in context) < 50:
+                print(f"⚠️ No team information found in documents")
+                return []
+            
+            context_text = "\n\n".join(context)
+            
+            # Ask LLM to extract names
+            prompt = f"""Extract the names of founders and key executives from this text.
+
+CONTEXT:
+{context_text}
+
+RULES:
+1. Return ONLY full names (first + last name)
+2. Include: Founders, CEO, CTO, key executives
+3. Do NOT include: advisors, investors, board members
+4. If no names found, return empty list
+
+Respond with ONLY valid JSON:
+{{"founder_names": ["Name 1", "Name 2"]}}
+
+Example:
+{{"founder_names": ["Danny Cohen", "Sara Levi"]}}"""
+
+            result = await llm_service.generate_structured(
+                prompt=prompt,
+                context=None
+            )
+            
+            names = result.get("founder_names", [])
+            
+            if names:
+                print(f"✅ Found {len(names)} founder(s): {', '.join(names)}")
+            else:
+                print(f"⚠️ No founder names extracted")
+            
+            return names
+            
+        except Exception as e:
+            print(f"⚠️ Founder extraction failed: {e}")
+            return []
+    
+    # ✅ UPDATED METHOD - מקבל founder_names
+    async def _get_web_validation(self, startup: Startup, founder_names: List[str] = None) -> str:
         """Get web search validation for startup claims"""
         try:
             print(f"\n🌐 Fetching web validation...")
@@ -103,7 +171,7 @@ class ScorerService:
             validation = await search_service.validate_startup_claims(
                 startup_name=startup.name,
                 industry=startup.industry if hasattr(startup, 'industry') else None,
-                founder_names=None
+                founder_names=founder_names  # ✅ מעביר שמות מייסדים
             )
             
             print(f"✅ Web validation retrieved ({len(validation)} chars)")
@@ -111,13 +179,13 @@ class ScorerService:
             
         except Exception as e:
             print(f"⚠️ Web validation failed (continuing with docs only): {e}")
-            return ""  # Graceful degradation
+            return ""
     
     async def _score_category(
         self,
         startup_id: int,
         category: str,
-        web_validation: str = ""  # ✅ פרמטר חדש
+        web_validation: str = ""
     ) -> float:
         """Score a specific category"""
         
@@ -129,18 +197,18 @@ class ScorerService:
         
         if not context or sum(len(c) for c in context) < 50:
             print(f"   ⚠️ WARNING: Insufficient context for {category}")
-            return 50.0  # Default middle score when no info
+            return 50.0
         
         print(f"   📚 Context: {sum(len(c) for c in context)} chars")
         
         # Build scoring prompt (with web validation)
-        prompt = self._build_scoring_prompt(category, context, web_validation)  # ✅ העברת web_validation
+        prompt = self._build_scoring_prompt(category, context, web_validation)
         
         # Get LLM score
         try:
             result = await llm_service.generate_structured(
                 prompt=prompt,
-                context=None  # Context already in prompt
+                context=None
             )
             
             print(f"   📝 LLM Response: {result}")
@@ -173,7 +241,7 @@ class ScorerService:
         
         return queries.get(category, "Analyze this startup")
     
-    def _build_scoring_prompt(self, category: str, context: List[str], web_validation: str = "") -> str:  # ✅ פרמטר חדש
+    def _build_scoring_prompt(self, category: str, context: List[str], web_validation: str = "") -> str:
         """Build prompt for scoring a category"""
         
         context_text = "\n\n---\n\n".join(context)
@@ -221,7 +289,6 @@ class ScorerService:
         criteria = criteria_map.get(category, [])
         criteria_text = "\n".join(f"- {c}" for c in criteria)
         
-        # ✅ UPDATED PROMPT WITH WEB VALIDATION
         return f"""You are an expert startup investor. Score this startup on the {category.replace('_', ' ').title()} dimension.
 
 SOURCE 1 (INTERNAL DOCUMENTS - Primary Truth):
@@ -290,7 +357,7 @@ Example with web validation impact:
         startup_id: int,
         scores: Dict[str, float],
         overall: float,
-        web_validation: str = ""  # ✅ פרמטר חדש
+        web_validation: str = ""
     ) -> str:
         """Generate detailed reasoning for the score using LLM"""
         
@@ -301,18 +368,16 @@ Example with web validation impact:
         context = await rag_service.get_context(startup_id, context_query, max_chunks=8)
         
         if not context:
-            # Fallback to simple reasoning
             return self._generate_simple_reasoning(scores, overall)
         
         context_text = "\n\n".join(context)
         
-        # ✅ UPDATED PROMPT WITH WEB VALIDATION
         prompt = f"""You are an expert investment analyst writing a detailed investment memo.
 
 SCORES:
-Overall: {overall:.1f}/100
-Team: {scores['team_score']:.0f} | Product: {scores['product_score']:.0f} | Market: {scores['market_score']:.0f}
-Traction: {scores['traction_score']:.0f} | Financials: {scores['financials_score']:.0f} | Innovation: {scores['innovation_score']:.0f}
+Overall: {self._format_score(overall)}/100
+Team: {self._format_score(scores['team_score'])} | Product: {self._format_score(scores['product_score'])} | Market: {self._format_score(scores['market_score'])}
+Traction: {self._format_score(scores['traction_score'])} | Financials: {self._format_score(scores['financials_score'])} | Innovation: {self._format_score(scores['innovation_score'])}
 
 SOURCE 1 (STARTUP DOCUMENTS):
 {context_text}
@@ -331,7 +396,7 @@ Act as a Senior VC Analyst. Review the deck AND web validation to generate a con
 ===== OUTPUT STRUCTURE =====
 
 ### 🎯 Executive Summary
-* **Verdict:** "[Company Name] scored **{overall:.1f}/100**. A [Solid/Risky/High-Potential] opportunity."
+* **Verdict:** "[Company Name] scored **{self._format_score(overall)}/100**. A [Solid/Risky/High-Potential] opportunity."
 * **The Hook:** One sentence explaining the core value proposition.
 
 ### 🚀 Key Strengths
@@ -349,16 +414,15 @@ Act as a Senior VC Analyst. Review the deck AND web validation to generate a con
 
 ---
 ### 📊 DATA_FOR_UI (Strictly output this list for parsing)
-* Team: {scores['team_score']:.0f}
-* Product: {scores['product_score']:.0f}
-* Market: {scores['market_score']:.0f}
-* Traction: {scores['traction_score']:.0f}
-* Financials: {scores['financials_score']:.0f}
-* Innovation: {scores['innovation_score']:.0f}
-* Overall: {overall:.1f}"""
+* Team: {self._format_score(scores['team_score'])}
+* Product: {self._format_score(scores['product_score'])}
+* Market: {self._format_score(scores['market_score'])}
+* Traction: {self._format_score(scores['traction_score'])}
+* Financials: {self._format_score(scores['financials_score'])}
+* Innovation: {self._format_score(scores['innovation_score'])}
+* Overall: {self._format_score(overall)}"""
          
         try:
-            # Generate using LLM
             reasoning = await llm_service.generate(
                 prompt=prompt,
                 context=None,
@@ -366,10 +430,8 @@ Act as a Senior VC Analyst. Review the deck AND web validation to generate a con
                 max_tokens=11000
             )
             
-            # Clean up response
             reasoning = reasoning.strip()
             
-            # Remove any markdown code blocks
             if "```" in reasoning:
                 parts = reasoning.split("```")
                 reasoning = parts[1] if len(parts) >= 3 else parts[0]
@@ -386,24 +448,23 @@ Act as a Senior VC Analyst. Review the deck AND web validation to generate a con
     def _generate_simple_reasoning(self, scores: Dict[str, float], overall: float) -> str:
         """Fallback simple reasoning when LLM fails"""
         
-        # Find strengths and weaknesses
         sorted_scores = sorted(scores.items(), key=lambda x: x[1], reverse=True)
         top_categories = sorted_scores[:3]
         bottom_category = sorted_scores[-1]
         
         reasoning = f"""### 🎯 Executive Summary
-The startup received an overall score of **{overall:.1f}/100**.
+The startup received an overall score of **{self._format_score(overall)}/100**.
 
 ### 🚀 Key Strengths
 """
         
         for cat, score in top_categories:
             cat_name = cat.replace('_', ' ').title().replace(' Score', '')
-            reasoning += f"* **{cat_name} ({score:.0f}):** Strong performance in this area.\n"
-        
+            reasoning += f"* **{cat_name} ({self._format_score(score)}):** Strong performance in this area.\n"
+
         reasoning += f"""
 ### ⚠️ Critical Risks
-* **{bottom_category[0].replace('_', ' ').title().replace(' Score', '')} ({bottom_category[1]:.0f}):** Needs improvement.
+* **{bottom_category[0].replace('_', ' ').title().replace(' Score', '')} ({self._format_score(bottom_category[1])}):** Needs improvement.
 
 ### 💡 Final Recommendation
 Consider this investment opportunity with careful attention to the identified weaknesses.
@@ -414,9 +475,9 @@ Consider this investment opportunity with careful attention to the identified we
         
         for cat, score in scores.items():
             cat_name = cat.replace('_score', '').title()
-            reasoning += f"* {cat_name}: {score:.0f}\n"
-        
-        reasoning += f"* Overall: {overall:.1f}\n"
+            reasoning += f"* {cat_name}: {self._format_score(score)}\n"
+
+        reasoning += f"* Overall: {self._format_score(overall)}\n"
         
         return reasoning
 

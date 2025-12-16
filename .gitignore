@@ -1,0 +1,62 @@
+# --- General & OS ---
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.log
+
+# --- Security (CRITICAL) ---
+# התמונה הראשונה הראתה שגיאת API Key - זה קריטי להסתיר את הקבצים האלו
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+
+# --- Python (Backend) ---
+# מתעלם מקבצים מקומפלים (ראיתי הרבה כאלה בתיקיות __pycache__ בתמונות)
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Virtual Environments
+venv/
+.venv/
+env/
+.env/
+
+# Testing & Coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# --- Node.js / React (Frontend) ---
+# את זה לעולם לא מעלים לגיט - זה כבד מאוד
+node_modules/
+
+# Build outputs
+dist/
+build/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Local env files for frontend
+.env.development.local
+.env.test.local
+.env.production.local
+.env.local
+
+# --- Docker ---
+# מתעלם מקבצי Override מקומיים אם יש
+docker-compose.override.yml
+
+# --- Database ---
+# אם הדוקר יוצר ווליום מקומי לדאטה בייס בתוך התיקייה
+postgres_data/
+pgdata/
+*.sqlite3
+*.db

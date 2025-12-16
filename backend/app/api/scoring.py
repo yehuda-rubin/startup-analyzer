@@ -13,6 +13,15 @@ class ScoreRequest(BaseModel):
     startup_id: int
 
 
+def format_score(score):
+    """Format score with max 2 decimals, no trailing zeros"""
+    if score is None:
+        return 0
+    rounded = round(score, 2)
+    # Remove trailing zeros and decimal point if integer
+    return float(f"{rounded:.2f}".rstrip('0').rstrip('.'))
+
+
 @router.post("/calculate")
 async def calculate_score(
     request: ScoreRequest,
@@ -28,14 +37,14 @@ async def calculate_score(
         return {
             "id": score.id,
             "startup_id": score.startup_id,
-            "overall_score": score.overall_score,
+            "overall_score": format_score(score.overall_score),
             "category_scores": {
-                "team": score.team_score,
-                "product": score.product_score,
-                "market": score.market_score,
-                "traction": score.traction_score,
-                "financials": score.financials_score,
-                "innovation": score.innovation_score
+                "team": format_score(score.team_score),
+                "product": format_score(score.product_score),
+                "market": format_score(score.market_score),
+                "traction": format_score(score.traction_score),
+                "financials": format_score(score.financials_score),
+                "innovation": format_score(score.innovation_score)
             },
             "score_breakdown": score.score_breakdown,
             "reasoning": score.reasoning,
@@ -59,16 +68,16 @@ async def get_startup_scores(
     return [
         {
             "id": score.id,
-            "overall_score": score.overall_score,
-            "category_scores": {  # ← הוסף!
-                "team": score.team_score,
-                "product": score.product_score,
-                "market": score.market_score,
-                "traction": score.traction_score,
-                "financials": score.financials_score,
-                "innovation": score.innovation_score
+            "overall_score": format_score(score.overall_score),
+            "category_scores": {
+                "team": format_score(score.team_score),
+                "product": format_score(score.product_score),
+                "market": format_score(score.market_score),
+                "traction": format_score(score.traction_score),
+                "financials": format_score(score.financials_score),
+                "innovation": format_score(score.innovation_score)
             },
-            "reasoning": score.reasoning,  # ← הוסף!
+            "reasoning": score.reasoning,
             "confidence_level": score.confidence_level,
             "created_at": score.created_at.isoformat()
         }
@@ -89,14 +98,14 @@ async def get_score(
     return {
         "id": score.id,
         "startup_id": score.startup_id,
-        "overall_score": score.overall_score,
+        "overall_score": format_score(score.overall_score),
         "category_scores": {
-            "team": score.team_score,
-            "product": score.product_score,
-            "market": score.market_score,
-            "traction": score.traction_score,
-            "financials": score.financials_score,
-            "innovation": score.innovation_score
+            "team": format_score(score.team_score),
+            "product": format_score(score.product_score),
+            "market": format_score(score.market_score),
+            "traction": format_score(score.traction_score),
+            "financials": format_score(score.financials_score),
+            "innovation": format_score(score.innovation_score)
         },
         "score_breakdown": score.score_breakdown,
         "reasoning": score.reasoning,
