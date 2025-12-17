@@ -41,7 +41,7 @@ function StartupCard({ startup, score, onClick, onDelete }) {
   return (
     <div
       onClick={() => onClick && onClick(startup)}
-      className="group relative bg-[#0A0A0A]/80 backdrop-blur-md border border-white/5 rounded-xl p-6 
+      className="group relative bg-[#1E1E1E]/90 backdrop-blur-md border border-white/10 rounded-xl p-6 
         transition-all duration-300 hover:border-[#00FF41]/30 hover:shadow-[0_0_30px_rgba(0,255,65,0.1)] hover:-translate-y-1 cursor-pointer overflow-hidden"
     >
       {/* Hover Gradient Overlay */}

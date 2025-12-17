@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Zap, Briefcase, LogOut } from 'lucide-react';
+import { Zap, Briefcase, LogOut, TreeDeciduous } from 'lucide-react';
 
 function Navbar() {
   const location = useLocation();
@@ -24,13 +24,13 @@ function Navbar() {
   // Role Styling Logic
   const isEntrepreneur = userRole === 'entrepreneur';
 
-  const roleStyles = isEntrepreneur
-    ? 'text-[#00FF41] bg-[#00FF41]/10 border-[#00FF41]/20 shadow-[0_0_10px_rgba(0,255,65,0.1)]'
-    : 'text-[#00E5FF] bg-[#00E5FF]/10 border-[#00E5FF]/20 shadow-[0_0_10px_rgba(0,229,255,0.1)]';
+  const roleStyles = userRole === 'entrepreneur'
+    ? 'border-[#00E5FF] text-[#00E5FF] bg-[#00E5FF]/10 shadow-[0_0_10px_rgba(0,229,255,0.2)]'
+    : 'border-[#00FF41] text-[#00FF41] bg-[#00FF41]/10 shadow-[0_0_10px_rgba(0,255,65,0.2)]';
 
-  const roleIcon = isEntrepreneur
-    ? <Zap size={14} className="text-[#00FF41]" />
-    : <Briefcase size={14} className="text-[#00E5FF]" />;
+  const roleIcon = userRole === 'entrepreneur'
+    ? <Zap size={12} className="fill-current" />
+    : <Briefcase size={12} className="fill-current" />;
 
   return (
     <nav className="fixed top-0 left-0 right-0 h-20 z-50 bg-white/5 backdrop-blur-xl border-b border-white/10 transition-all duration-300">
@@ -39,7 +39,7 @@ function Navbar() {
         {/* Brand + Role Label */}
         <div className="flex items-center gap-4">
           <Link to="/" className="flex items-center gap-2 text-2xl font-bold tracking-tight group">
-            <span className="text-3xl filter drop-shadow-[0_0_8px_rgba(255,255,255,0.3)] group-hover:drop-shadow-[0_0_12px_rgba(0,255,65,0.5)] transition-all">🚀</span>
+            <TreeDeciduous className="w-9 h-9 text-[#00FF41] filter drop-shadow-[0_0_8px_rgba(0,255,65,0.5)] group-hover:drop-shadow-[0_0_12px_rgba(0,255,65,0.8)] transition-all" />
             <span className="text-white group-hover:text-[#00FF41] transition-colors duration-300">Roots</span>
           </Link>
 
