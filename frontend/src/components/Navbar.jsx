@@ -46,7 +46,7 @@ function Navbar() {
     <nav style={styles.nav}>
       <div style={styles.container}>
         <Link to="/" style={styles.brand}>
-          🚀 Startup Analyzer AI
+          🚀 Roots
         </Link>
         <ul style={styles.links}>
           <li>
