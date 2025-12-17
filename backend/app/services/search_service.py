@@ -112,7 +112,7 @@ class WebSearchServiceOptimized:
         if not self.tavily_enabled:
             return []
         
-        from .llm_service_optimized import llm_service
+        from .llm_service import llm_service
         
         # ⚡ Build focused context
         context_parts = [f"Startup: {startup_name}"]
