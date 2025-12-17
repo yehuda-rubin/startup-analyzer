@@ -28,58 +28,51 @@ const PageLayout = ({ children, title, subtitle, action }) => {
     const theme = useTheme(role);
 
     return (
-        <div className={`min-h-[calc(100vh-64px)] w-full transition-colors duration-500 bg-slate-950 text-slate-200 relative overflow-hidden pt-16`}>
-
-            {/* 1. Enhanced Ambient Background Glows */}
+        <div className="min-h-[calc(100vh-64px)] w-full bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-slate-200 relative overflow-hidden pt-16">
+            {/* Modern Background Effects */}
             <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-                {/* Primary Glow */}
-                <div className={`absolute -top-[20%] -right-[10%] w-[800px] h-[800px] rounded-full blur-[120px] opacity-[0.15] mix-blend-screen animate-pulse ${
-                    role === 'investor' ? 'bg-emerald-600' : 'bg-indigo-600'
-                }`}></div>
+                {/* Animated Gradient Orbs */}
+                <div className={`absolute top-0 right-0 w-96 h-96 rounded-full blur-3xl opacity-20 animate-pulse ${
+                    role === 'investor' ? 'bg-emerald-500' : 'bg-indigo-500'
+                }`} style={{ animationDuration: '4s' }}></div>
+                <div className={`absolute bottom-0 left-0 w-80 h-80 rounded-full blur-3xl opacity-15 animate-pulse ${
+                    role === 'investor' ? 'bg-teal-500' : 'bg-purple-500'
+                }`} style={{ animationDuration: '6s', animationDelay: '1s' }}></div>
                 
-                {/* Secondary Glow */}
-                <div className={`absolute -bottom-[20%] -left-[10%] w-[600px] h-[600px] rounded-full blur-[100px] opacity-[0.1] mix-blend-screen animate-pulse animation-delay-2000 ${
-                    role === 'investor' ? 'bg-teal-600' : 'bg-purple-600'
-                }`}></div>
+                {/* Grid Pattern */}
+                <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:3rem_3rem]"></div>
                 
-                {/* Tertiary Glow */}
-                <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full blur-[150px] opacity-[0.05] mix-blend-screen animate-pulse animation-delay-4000 ${
-                    role === 'investor' ? 'bg-cyan-600' : 'bg-pink-600'
-                }`}></div>
-
-                {/* Grid Pattern Overlay */}
-                <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff03_1px,transparent_1px),linear-gradient(to_bottom,#ffffff03_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_0%,#000_70%,transparent_110%)]"></div>
+                {/* Radial Gradient Overlay */}
+                <div className="absolute inset-0 bg-radial-gradient from-transparent via-slate-950/50 to-slate-950"></div>
             </div>
 
-            {/* 2. Content Container */}
-            <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-
-                {/* 3. Enhanced Header */}
+            {/* Content Container */}
+            <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                {/* Header */}
                 {(title || action) && (
-                    <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12 pb-8 border-b border-white/5 animate-in fade-in slide-in-bottom">
-                        <div className="space-y-3">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 pb-6 border-b border-white/5">
+                        <div className="space-y-2">
                             {title && (
-                                <h1 className="text-5xl md:text-6xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white via-slate-200 to-slate-400">
+                                <h1 className="text-3xl md:text-4xl font-bold text-white tracking-tight">
                                     {title}
                                 </h1>
                             )}
                             {subtitle && (
-                                <p className="text-lg md:text-xl text-slate-400 max-w-2xl leading-relaxed">
+                                <p className="text-sm md:text-base text-slate-400 max-w-2xl">
                                     {subtitle}
                                 </p>
                             )}
                         </div>
-
                         {action && (
-                            <div className="flex-shrink-0 animate-in fade-in slide-in-bottom animation-delay-200">
+                            <div className="flex-shrink-0">
                                 {action}
                             </div>
                         )}
                     </div>
                 )}
 
-                {/* 4. Children (The Page Content) */}
-                <div className="animate-in fade-in slide-in-bottom duration-700">
+                {/* Content */}
+                <div>
                     {typeof children === 'function' ? children({ theme, role, loading }) : children}
                 </div>
             </div>

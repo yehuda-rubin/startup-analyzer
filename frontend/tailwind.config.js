@@ -6,17 +6,15 @@ module.exports = {
     theme: {
         extend: {
             colors: {
-                // צבעי רקע כהים ועמוקים
                 dark: {
                     bg: '#0F172A',      // Slate 900
                     card: '#1E293B',    // Slate 800
                     input: '#334155',   // Slate 700
                 },
-                // צבעי המותג (סגול-כחול-טורקיז הייטקיסטי)
                 brand: {
                     primary: '#6366F1',   // Indigo
                     secondary: '#8B5CF6', // Violet
-                    accent: '#06B6D4',    // Cyan (Neon look)
+                    accent: '#06B6D4',    // Cyan
                 }
             },
             animation: {

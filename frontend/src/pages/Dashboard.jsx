@@ -1,215 +1,219 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { listStartups, getStartupScores } from '../services/api';
-import PageLayout from '../components/PageLayout';
+import React from 'react';
+import { useOutletContext, Link } from 'react-router-dom';
 
-// Inline SVGs replacing Lucide
 const Icons = {
-  Projects: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="7" height="9" x="3" y="3" rx="1" /><rect width="7" height="5" x="14" y="3" rx="1" /><rect width="7" height="9" x="14" y="12" rx="1" /><rect width="7" height="5" x="3" y="16" rx="1" /></svg>,
-  Trend: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17" /><polyline points="16 7 22 7 22 13" /></svg>,
-  Clock: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>,
-  ArrowRight: ({ className }) => <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>,
-  FolderOpen: ({ className }) => <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 14 1.45-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.55 6a2 2 0 0 1-1.94 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H20a2 2 0 0 1 2 2v2" /></svg>
+  Plus: ({ className, size = 18 }) => (
+    <svg width={size} height={size} className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
+    </svg>
+  ),
+  TrendingUp: ({ className, size = 18 }) => (
+    <svg width={size} height={size} className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" /><polyline points="17 6 23 6 23 12" />
+    </svg>
+  ),
+  Users: ({ className, size = 18 }) => (
+    <svg width={size} height={size} className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" />
+    </svg>
+  ),
+  Eye: ({ className, size = 18 }) => (
+    <svg width={size} height={size} className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" />
+    </svg>
+  ),
+  ArrowRight: ({ className, size = 16 }) => (
+    <svg width={size} height={size} className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" />
+    </svg>
+  ),
+  Rocket: ({ className, size = 18 }) => (
+    <svg width={size} height={size} className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z" />
+      <path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.94 5.25-2.48 7.9A22.84 22.84 0 0 1 15 12z" />
+      <path d="M9 9 3 21" /><path d="M15 9l6 12" />
+    </svg>
+  ),
+  Briefcase: ({ className, size = 18 }) => (
+    <svg width={size} height={size} className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="7" width="20" height="14" rx="2" ry="2" /><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
+    </svg>
+  )
 };
 
 const Dashboard = () => {
-  const navigate = useNavigate();
-  const [startups, setStartups] = useState([]);
-  const [scores, setScores] = useState({});
-  const [loadingData, setLoadingData] = useState(true);
+  const { user, role } = useOutletContext();
+  const isInvestor = role === 'investor';
 
-  useEffect(() => {
-    loadStartups();
-  }, []);
+  const stats = [
+    { label: 'Total Interactions', value: '1,284', trend: '+12.5%', icon: Icons.Eye },
+    { label: 'Active Projects', value: '42', trend: '+5.2%', icon: isInvestor ? Icons.Briefcase : Icons.Rocket },
+    { label: 'Growth Score', value: '8.4', trend: '+0.8', icon: Icons.TrendingUp },
+  ];
 
-  const loadStartups = async () => {
-    try {
-      const data = await listStartups();
-      setStartups(data);
+  const projects = [
+    { id: 1, name: 'EcoSmart', category: 'Cleantech', status: 'Analysis Ready', date: '2 hrs ago' },
+    { id: 2, name: 'FinFlow', category: 'Fintech', status: 'Pending', date: '1 day ago' },
+    { id: 3, name: 'MediCare AI', category: 'Healthtech', status: 'Completed', date: '3 days ago' },
+    { id: 4, name: 'Urban Grow', category: 'AgriTech', status: 'Analysis Ready', date: '5 days ago' },
+  ];
 
-      const scoresData = {};
-      for (const startup of data) {
-        try {
-          const startupScores = await getStartupScores(startup.id);
-          if (startupScores.length > 0) {
-            scoresData[startup.id] = startupScores[0].overall_score.toFixed(1);
-          }
-        } catch (error) {
-          console.error(`Failed to load scores for startup ${startup.id}`, error);
-        }
-      }
-      setScores(scoresData);
-    } catch (error) {
-      console.error('Failed to load startups:', error);
-    } finally {
-      setLoadingData(false);
-    }
-  };
+  const accentText = isInvestor ? 'text-emerald-400' : 'text-indigo-400';
+  const accentBg = isInvestor ? 'bg-emerald-500/10' : 'bg-indigo-500/10';
+  const accentBorder = isInvestor ? 'border-emerald-500/20' : 'border-indigo-500/20';
+  const accentButton = isInvestor ? 'bg-emerald-600 hover:bg-emerald-500' : 'bg-indigo-600 hover:bg-indigo-500';
 
   return (
-    <PageLayout
-      title="Dashboard"
-      subtitle="Manage your projects and view AI-driven insights."
-      action={
-        <button
-          onClick={() => navigate('/upload')}
-          className="group relative inline-flex items-center justify-center px-6 py-3 text-sm font-semibold text-white transition-all duration-300 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 rounded-xl shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 hover:scale-105 active:scale-95 overflow-hidden"
-        >
-          <span className="relative z-10 flex items-center gap-2">
-            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="12" y1="5" x2="12" y2="19"></line>
-              <line x1="5" y1="12" x2="19" y2="12"></line>
-            </svg>
-            New Project
-          </span>
-          <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
-        </button>
-      }
-    >
-      {({ theme, role }) => (
-        <div className="space-y-12">
+    <div className="space-y-8 animate-in fade-in duration-700 pb-12">
+      {/* Hero Section */}
+      <div className={`relative overflow-hidden rounded-3xl p-8 md:p-10 border border-white/10 shadow-2xl bg-gradient-to-br ${
+        isInvestor 
+          ? 'from-emerald-950/40 via-teal-950/20 to-slate-950/0' 
+          : 'from-indigo-950/40 via-purple-950/20 to-slate-950/0'
+      }`}>
+        {/* Decorative Elements */}
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:2rem_2rem] opacity-30"></div>
+        <div className={`absolute top-0 right-0 w-96 h-96 rounded-full blur-3xl opacity-20 ${
+          isInvestor ? 'bg-emerald-500/30' : 'bg-indigo-500/30'
+        }`}></div>
 
-          {/* 1. Stats Row - Premium Glassmorphism */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {[
-              { label: 'Active Projects', value: startups.length, icon: Icons.Projects, trend: '+2 this week', color: 'indigo' },
-              { label: 'Avg. Analysis Score', value: '8.4', icon: Icons.Trend, trend: '+0.8 points', color: 'purple' },
-              { label: 'Pending Reviews', value: '2', icon: Icons.Clock, trend: 'Due today', color: 'cyan' }
-            ].map((stat, i) => (
-              <div 
-                key={i} 
-                className="relative overflow-hidden rounded-2xl glass p-6 transition-all hover:bg-white/10 hover:-translate-y-1 hover:shadow-2xl group animate-in fade-in slide-in-bottom"
-                style={{ animationDelay: `${i * 100}ms` }}
-              >
-                {/* Gradient Glow */}
-                <div className={`absolute -right-10 -top-10 w-32 h-32 rounded-full opacity-0 group-hover:opacity-30 transition-opacity duration-500 blur-3xl ${
-                  stat.color === 'indigo' ? 'bg-indigo-500' : 
-                  stat.color === 'purple' ? 'bg-purple-500' : 
-                  'bg-cyan-500'
-                }`}></div>
-
-                <div className="relative z-10 flex items-start justify-between">
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-slate-400 mb-1">{stat.label}</p>
-                    <h3 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400 mb-2">
-                      {stat.value}
-                    </h3>
-                    <p className={`text-xs font-semibold ${theme.textAccent} flex items-center gap-1`}>
-                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                      </svg>
-                      {stat.trend}
-                    </p>
-                  </div>
-                  <div className={`p-3.5 rounded-xl ${theme.iconBg} ${theme.iconColor} group-hover:scale-110 transition-transform duration-300`}>
-                    <stat.icon />
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* 2. Projects Grid */}
-          <div>
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                <Icons.FolderOpen className="w-5 h-5 text-slate-400" />
-                Recent Projects
-              </h2>
+        <div className="relative z-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
+          <div className="space-y-4 max-w-2xl">
+            <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${accentBg} ${accentBorder} ${accentText}`}>
+              <div className={`w-1.5 h-1.5 rounded-full ${isInvestor ? 'bg-emerald-400' : 'bg-indigo-400'} animate-pulse`}></div>
+              {isInvestor ? 'Investor Portal' : 'Entrepreneur Workspace'}
             </div>
 
-            {loadingData ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {[1, 2, 3].map(i => (
-                  <div key={i} className="h-72 rounded-3xl glass animate-pulse border border-white/5">
-                    <div className="h-full bg-gradient-to-br from-slate-900/50 to-slate-800/30 rounded-3xl"></div>
-                  </div>
-                ))}
-              </div>
-            ) : startups.length === 0 ? (
-              // Empty State
-              <div className="text-center py-24 rounded-3xl border-2 border-dashed border-slate-800/50 glass relative overflow-hidden group">
-                {/* Animated background gradient */}
-                <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 via-purple-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                
-                <div className="relative z-10">
-                  <div className={`w-24 h-24 mx-auto rounded-2xl flex items-center justify-center mb-6 ${theme.iconBg} group-hover:scale-110 transition-transform duration-300`}>
-                    <svg className={`w-12 h-12 ${theme.iconColor}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M12 5v14M5 12h14" />
-                    </svg>
-                  </div>
-                  <h3 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400 mb-3">
-                    No projects found
-                  </h3>
-                  <p className="text-slate-400 mb-8 max-w-md mx-auto text-lg">
-                    Get started by creating your first startup analysis project. It's quick and easy.
-                  </p>
-                  <button
-                    onClick={() => navigate('/upload')}
-                    className="px-8 py-4 rounded-xl text-sm font-bold text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 shadow-xl shadow-indigo-500/25 hover:shadow-indigo-500/40 transition-all hover:scale-105 active:scale-95"
-                  >
-                    Create First Project
-                  </button>
-                </div>
-              </div>
-            ) : (
-              // Regular Grid
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {startups.map((startup, index) => (
-                  <div
-                    key={startup.id}
-                    onClick={() => navigate(`/analysis/${startup.id}`)}
-                    className="group relative glass rounded-3xl p-1 overflow-hidden transition-all hover:-translate-y-2 hover:shadow-2xl cursor-pointer animate-in fade-in slide-in-bottom"
-                    style={{ animationDelay: `${index * 100}ms` }}
-                  >
-                    {/* Animated Border Gradient */}
-                    <div className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-gradient-to-br ${
-                      role === 'investor' 
-                        ? 'from-emerald-500/50 via-teal-500/30' 
-                        : 'from-indigo-500/50 via-purple-500/30'
-                    } to-transparent rounded-3xl`}></div>
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white tracking-tight leading-tight">
+              Good morning, <br />
+              <span className={`text-transparent bg-clip-text bg-gradient-to-r ${
+                isInvestor ? 'from-emerald-200 via-teal-300 to-emerald-400' : 'from-indigo-200 via-purple-300 to-indigo-400'
+              }`}>
+                {user?.email?.split('@')[0] || 'User'}
+              </span>
+            </h1>
 
-                    <div className="relative h-full bg-slate-950/80 backdrop-blur-sm rounded-[22px] p-6 border border-white/5 group-hover:border-white/10 transition-colors">
+            <p className="text-slate-300 text-base md:text-lg font-light max-w-xl leading-relaxed">
+              {isInvestor
+                ? "Your portfolio is active. Here are your latest insights and deal flow metrics."
+                : "Your startup analysis is ready. Track your growth scores and funding readiness."}
+            </p>
+          </div>
 
-                      <div className="flex justify-between items-start mb-6">
-                        <div className={`w-16 h-16 rounded-2xl flex items-center justify-center text-2xl font-bold text-white shadow-lg group-hover:scale-110 transition-transform duration-300 ${theme.iconBg}`}>
-                          {startup.name.substring(0, 2).toUpperCase()}
-                        </div>
-                        {scores[startup.id] && (
-                          <div className={`px-4 py-1.5 rounded-full text-sm font-bold border backdrop-blur-sm ${
-                            role === 'investor' 
-                              ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-400' 
-                              : 'bg-indigo-500/20 border-indigo-500/50 text-indigo-400'
-                          }`}>
-                            {scores[startup.id]}
-                          </div>
-                        )}
+          {!isInvestor && (
+            <Link to="/upload" className="group">
+              <div className={`flex items-center gap-3 px-6 py-3.5 rounded-xl text-sm font-bold text-white shadow-xl transition-all hover:-translate-y-1 active:scale-95 ${accentButton} ${isInvestor ? 'shadow-emerald-900/30' : 'shadow-indigo-900/30'}`}>
+                <Icons.Plus size={18} />
+                <span>Create New Project</span>
+              </div>
+            </Link>
+          )}
+        </div>
+      </div>
+
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {stats.map((stat, idx) => (
+          <div 
+            key={idx} 
+            className={`relative group p-6 rounded-2xl bg-slate-900/60 backdrop-blur-xl border border-white/10 transition-all duration-300 hover:border-white/20 hover:shadow-2xl hover:-translate-y-1 ${
+              isInvestor 
+                ? 'hover:shadow-[0_0_30px_-5px_rgba(16,185,129,0.15)]' 
+                : 'hover:shadow-[0_0_30px_-5px_rgba(99,102,241,0.15)]'
+            }`}
+          >
+            <div className="flex justify-between items-start mb-4">
+              <div className={`p-3 rounded-xl transition-transform group-hover:scale-110 ${accentBg} ${accentText}`}>
+                <stat.icon size={20} />
+              </div>
+              <span className={`flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-full border bg-slate-950/50 border-white/10 ${accentText}`}>
+                {stat.trend}
+                <Icons.TrendingUp size={12} className={accentText} />
+              </span>
+            </div>
+            <div>
+              <h3 className="text-3xl font-bold text-white tracking-tight mb-1">{stat.value}</h3>
+              <p className="text-sm font-medium text-slate-400 group-hover:text-slate-300 transition-colors">{stat.label}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Projects Table */}
+      <div className="bg-slate-900/60 backdrop-blur-xl rounded-3xl border border-white/10 overflow-hidden shadow-2xl">
+        <div className="px-8 py-6 border-b border-white/10 flex items-center justify-between bg-white/[0.02]">
+          <div>
+            <h3 className="text-lg font-bold text-white">Recent Projects</h3>
+            <p className="text-xs text-slate-500 mt-1">Real-time status updates</p>
+          </div>
+          <Link to="/analysis" className={`text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 transition-colors px-3 py-1.5 rounded-lg hover:bg-white/5 ${accentText}`}>
+            View All <Icons.ArrowRight size={14} />
+          </Link>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-sm">
+            <thead>
+              <tr className="border-b border-white/10 bg-slate-950/30">
+                <th className="px-8 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Project Name</th>
+                <th className="px-8 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Category</th>
+                <th className="px-8 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</th>
+                <th className="px-8 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Last Activity</th>
+                <th className="px-8 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">Action</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-white/5">
+              {projects.map((project) => (
+                <tr key={project.id} className="group hover:bg-white/[0.02] transition-colors">
+                  <td className="px-8 py-5">
+                    <div className="flex items-center gap-4">
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center border border-white/10 shadow-sm ${accentBg} ${accentText} font-bold text-sm`}>
+                        {project.name[0]}
                       </div>
-
-                      <h3 className="text-xl font-bold text-white mb-3 group-hover:bg-clip-text group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:from-white group-hover:via-slate-200 group-hover:to-slate-400 transition-all duration-300">
-                        {startup.name}
-                      </h3>
-                      <p className="text-slate-400 text-sm line-clamp-2 h-12 mb-6 group-hover:text-slate-300 transition-colors">
-                        {startup.description || 'No description available'}
-                      </p>
-
-                      <div className="pt-6 border-t border-white/5 flex items-center justify-between">
-                        <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider px-3 py-1.5 rounded-lg bg-slate-900/50">
-                          {startup.industry || 'Technology'}
-                        </span>
-                        <div className={`w-10 h-10 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all transform translate-x-4 group-hover:translate-x-0 duration-300 ${theme.iconBg}`}>
-                          <Icons.ArrowRight className={`w-5 h-5 ${theme.iconColor}`} />
-                        </div>
+                      <div>
+                        <p className="font-bold text-white group-hover:text-slate-100 transition-colors">{project.name}</p>
+                        <p className="text-[10px] text-slate-500 font-mono mt-0.5">#{project.id.toString().padStart(4, '0')}</p>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+                  </td>
+                  <td className="px-8 py-5">
+                    <span className="px-2.5 py-1 rounded-md bg-white/5 border border-white/10 text-slate-400 text-xs font-medium">
+                      {project.category}
+                    </span>
+                  </td>
+                  <td className="px-8 py-5">
+                    <div className="flex items-center gap-2">
+                      <span className={`w-2 h-2 rounded-full ${
+                        project.status === 'Completed' 
+                          ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' 
+                          : project.status === 'Analysis Ready' 
+                            ? 'bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]' 
+                            : 'bg-slate-500'
+                      }`}></span>
+                      <span className={`text-xs font-semibold ${
+                        project.status === 'Completed' 
+                          ? 'text-emerald-400' 
+                          : project.status === 'Analysis Ready' 
+                            ? 'text-blue-400' 
+                            : 'text-slate-400'
+                      }`}>
+                        {project.status}
+                      </span>
+                    </div>
+                  </td>
+                  <td className="px-8 py-5 text-slate-500 text-xs font-mono">{project.date}</td>
+                  <td className="px-8 py-5 text-right">
+                    <button className={`text-xs font-bold px-4 py-2 rounded-lg border border-white/10 hover:border-white/20 bg-white/5 hover:bg-white/10 transition-all ${accentText}`}>
+                      View
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
-      )}
-    </PageLayout>
+      </div>
+    </div>
   );
 };
 
