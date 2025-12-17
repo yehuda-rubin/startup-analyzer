@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { Rocket, Briefcase, Mail, Lock, CheckCircle2, ArrowRight, Loader2 } from 'lucide-react';
 
 export default function SignUp() {
   const [role, setRole] = useState(null); // 'entrepreneur' | 'investor'
@@ -35,17 +36,30 @@ export default function SignUp() {
     setLoading(false);
   }
 
+  const isEntrepreneur = role === 'entrepreneur';
+  const isInvestor = role === 'investor';
+
   return (
-    <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
-      <div className="max-w-2xl w-full bg-slate-900 rounded-xl shadow-2xl overflow-hidden border border-slate-800">
+    // Main Container: Forces full height and true centering
+    <div className="min-h-screen w-full flex items-center justify-center p-4">
+
+      {/* Background Ambience */}
+      <div className="fixed top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
+        <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-indigo-600/10 rounded-full blur-[120px]" />
+        <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-emerald-600/10 rounded-full blur-[120px]" />
+      </div>
+
+      {/* Content Card - Relative to sit above background */}
+      <div className="relative z-10 w-full max-w-md bg-[#1e293b] rounded-2xl border border-slate-700 shadow-2xl overflow-hidden">
         <div className="p-8">
           <div className="text-center mb-8">
             <h2 className="text-3xl font-bold text-white mb-2">Create Account</h2>
-            <p className="text-slate-400">Join our community of innovators and backers</p>
+            <p className="text-slate-400">Join the innovative ecosystem</p>
           </div>
 
           {error && (
-            <div className="bg-red-500/10 border border-red-500 text-red-500 p-4 rounded-lg mb-6 text-sm">
+            <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-4 rounded-xl mb-6 text-sm flex items-center gap-2">
+              <div className="w-1.5 h-1.5 rounded-full bg-red-500" />
               {error}
             </div>
           )}
@@ -53,93 +67,101 @@ export default function SignUp() {
           <form onSubmit={handleSubmit} className="space-y-6">
 
             {/* Role Selection */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-              <div
+            <div className="grid grid-cols-2 gap-4">
+              <button
+                type="button"
                 onClick={() => setRole('entrepreneur')}
-                className={`cursor-pointer p-6 rounded-xl border-2 transition-all duration-200 flex flex-col items-center text-center group
-                  ${role === 'entrepreneur'
-                    ? 'border-indigo-500 bg-indigo-500/10'
-                    : 'border-slate-700 hover:border-indigo-500/50 hover:bg-slate-800'
+                className={`p-4 rounded-xl border transition-all duration-300 flex flex-col items-center justify-center text-center gap-3
+                  ${isEntrepreneur
+                    ? 'bg-indigo-600/20 border-indigo-500 text-white shadow-lg shadow-indigo-500/10'
+                    : 'bg-slate-800/50 border-slate-700 text-slate-400 hover:bg-slate-800 hover:text-white'
                   }`}
               >
-                <span className="text-4xl mb-4">🚀</span>
-                <h3 className={`text-lg font-semibold mb-2 ${role === 'entrepreneur' ? 'text-indigo-400' : 'text-slate-200'}`}>Entrepreneur</h3>
-                <p className="text-sm text-slate-400">I want to analyze my startup and get funding.</p>
-              </div>
+                <Rocket size={24} className={isEntrepreneur ? 'text-indigo-400' : 'text-slate-500'} />
+                <span className="text-sm font-semibold">Founder</span>
+              </button>
 
-              <div
+              <button
+                type="button"
                 onClick={() => setRole('investor')}
-                className={`cursor-pointer p-6 rounded-xl border-2 transition-all duration-200 flex flex-col items-center text-center group
-                  ${role === 'investor'
-                    ? 'border-emerald-500 bg-emerald-500/10'
-                    : 'border-slate-700 hover:border-emerald-500/50 hover:bg-slate-800'
+                className={`p-4 rounded-xl border transition-all duration-300 flex flex-col items-center justify-center text-center gap-3
+                  ${isInvestor
+                    ? 'bg-emerald-600/20 border-emerald-500 text-white shadow-lg shadow-emerald-500/10'
+                    : 'bg-slate-800/50 border-slate-700 text-slate-400 hover:bg-slate-800 hover:text-white'
                   }`}
               >
-                <span className="text-4xl mb-4">💼</span>
-                <h3 className={`text-lg font-semibold mb-2 ${role === 'investor' ? 'text-emerald-400' : 'text-slate-200'}`}>Investor</h3>
-                <p className="text-sm text-slate-400">I want to find promising startups to invest in.</p>
-              </div>
+                <Briefcase size={24} className={isInvestor ? 'text-emerald-400' : 'text-slate-500'} />
+                <span className="text-sm font-semibold">Investor</span>
+              </button>
             </div>
 
-            <div className="grid grid-cols-1 gap-6">
+            {/* Inputs */}
+            <div className="space-y-4">
               <div>
-                <label className="block text-slate-300 text-sm font-medium mb-2">Email Address</label>
-                <input
-                  type="email"
-                  required
-                  className="w-full bg-slate-800 border border-slate-700 text-white rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                  placeholder="you@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
+                <div className="relative group">
+                  <Mail className="absolute left-4 top-3.5 text-slate-500 h-5 w-5 group-focus-within:text-indigo-400 transition-colors" />
+                  <input
+                    type="email"
+                    required
+                    className="w-full bg-[#0f172a] border border-slate-700 text-white rounded-xl pl-12 pr-4 py-3 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all placeholder:text-slate-600"
+                    placeholder="name@company.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
+                </div>
               </div>
-              <div>
-                <label className="block text-slate-300 text-sm font-medium mb-2">Password</label>
-                <input
-                  type="password"
-                  required
-                  className="w-full bg-slate-800 border border-slate-700 text-white rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-              </div>
-              <div>
-                <label className="block text-slate-300 text-sm font-medium mb-2">Confirm Password</label>
-                <input
-                  type="password"
-                  required
-                  className="w-full bg-slate-800 border border-slate-700 text-white rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                  placeholder="••••••••"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                />
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="relative group">
+                  <Lock className="absolute left-4 top-3.5 text-slate-500 h-5 w-5 group-focus-within:text-indigo-400 transition-colors" />
+                  <input
+                    type="password"
+                    required
+                    className="w-full bg-[#0f172a] border border-slate-700 text-white rounded-xl pl-12 pr-4 py-3 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all placeholder:text-slate-600"
+                    placeholder="Password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
+                </div>
+                <div className="relative group">
+                  <Lock className="absolute left-4 top-3.5 text-slate-500 h-5 w-5 group-focus-within:text-indigo-400 transition-colors" />
+                  <input
+                    type="password"
+                    required
+                    className="w-full bg-[#0f172a] border border-slate-700 text-white rounded-xl pl-12 pr-4 py-3 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all placeholder:text-slate-600"
+                    placeholder="Confirm"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                  />
+                </div>
               </div>
             </div>
 
             <button
               disabled={loading}
               type="submit"
-              className={`w-full font-semibold py-3 rounded-lg transition-colors flex items-center justify-center
-                ${role === 'investor'
-                  ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
-                  : 'bg-indigo-600 hover:bg-indigo-700 text-white'
+              className={`w-full font-bold py-3.5 rounded-xl transition-all shadow-lg flex items-center justify-center gap-2
+                ${isInvestor
+                  ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-900/20'
+                  : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-900/20'
                 }`}
             >
               {loading ? (
-                <span className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                <Loader2 className="animate-spin h-5 w-5" />
               ) : (
-                'Create Account'
+                <>
+                  Create Account <ArrowRight className="h-5 w-5" />
+                </>
               )}
             </button>
-          </form>
 
-          <div className="mt-6 text-center text-sm text-slate-400">
-            Already have an account?{' '}
-            <Link to="/login" className="text-blue-400 hover:text-blue-300 font-medium">
-              Sign in
-            </Link>
-          </div>
+            <div className="text-center text-sm text-slate-500">
+              Already have an account?{' '}
+              <Link to="/login" className="text-indigo-400 hover:text-indigo-300 font-medium transition-colors">
+                Sign in
+              </Link>
+            </div>
+          </form>
         </div>
       </div>
     </div>

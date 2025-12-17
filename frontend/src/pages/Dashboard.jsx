@@ -1,69 +1,90 @@
 import React, { useState, useEffect } from 'react';
 import { listStartups, getStartupScores } from '../services/api';
 import StartupCard from '../components/StartupCard';
+import { Plus } from 'lucide-react';
 
 const styles = {
   container: {
-    padding: '20px',
+    padding: '24px', // Consistent padding (24px)
   },
   header: {
-    marginBottom: '30px',
+    marginBottom: '32px',
   },
   title: {
     fontSize: '32px',
-    fontWeight: 'bold',
-    color: '#2c3e50',
-    marginBottom: '10px',
+    fontWeight: '700', // Bold
+    color: '#f8fafc', // Slate-50
+    marginBottom: '8px',
+    lineHeight: '1.2',
   },
   subtitle: {
     fontSize: '16px',
-    color: '#7f8c8d',
+    color: '#94a3b8', // Slate-400
+    lineHeight: '1.6', // Increased line-height
   },
   grid: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
-    gap: '20px',
+    gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))',
+    gap: '24px',
   },
   loading: {
     textAlign: 'center',
     padding: '40px',
     fontSize: '18px',
-    color: '#95a5a6',
+    color: '#64748b',
   },
   empty: {
     textAlign: 'center',
-    padding: '60px 20px',
-    backgroundColor: '#fff',
-    borderRadius: '8px',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+    padding: '80px 24px',
+    backgroundColor: '#1e293b', // Card lighter background
+    borderRadius: '12px',      // Modern radius
+    border: '1px solid #334155', // Subtle border
+    boxShadow: 'none',
   },
   emptyIcon: {
-    fontSize: '64px',
-    marginBottom: '20px',
+    fontSize: '48px',
+    marginBottom: '24px',
+    opacity: 0.8,
+  },
+  emptyTitle: {
+    fontSize: '20px',
+    fontWeight: '600',
+    color: '#f8fafc',
+    marginBottom: '8px',
   },
   emptyText: {
-    fontSize: '18px',
-    color: '#7f8c8d',
-    marginBottom: '20px',
+    fontSize: '16px',
+    color: '#94a3b8',
+    marginBottom: '32px',
+    lineHeight: '1.6',
+    maxWidth: '400px',
+    margin: '0 auto 32px auto',
   },
   button: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '8px',
     padding: '12px 24px',
-    backgroundColor: '#3498db',
+    backgroundColor: '#3b82f6', // Electric Blue
     color: '#fff',
     border: 'none',
-    borderRadius: '4px',
-    fontSize: '16px',
+    borderRadius: '8px',
+    fontSize: '15px',
     fontWeight: '600',
     cursor: 'pointer',
     textDecoration: 'none',
-    display: 'inline-block',
+    transition: 'background-color 0.2s',
   },
+  buttonHover: {
+    backgroundColor: '#2563eb', // Darker blue on hover
+  }
 };
 
 function Dashboard({ onSelectStartup }) {
   const [startups, setStartups] = useState([]);
   const [scores, setScores] = useState({});
   const [loading, setLoading] = useState(true);
+  const [isHovering, setIsHovering] = useState(false);
 
   useEffect(() => {
     loadStartups();
@@ -73,7 +94,7 @@ function Dashboard({ onSelectStartup }) {
     try {
       const data = await listStartups();
       setStartups(data);
-      
+
       // Load scores for each startup
       const scoresData = {};
       for (const startup of data) {
@@ -105,16 +126,31 @@ function Dashboard({ onSelectStartup }) {
   };
 
   if (loading) {
-    return <div style={styles.loading}>Loading startups...</div>;
+    return <div style={styles.loading}>Loading portfolio data...</div>;
   }
 
   if (startups.length === 0) {
     return (
       <div style={styles.container}>
+        <div style={styles.header}>
+          <h1 style={styles.title}>Startup Dashboard</h1>
+          <p style={styles.subtitle}>Investment Portfolio Overview</p>
+        </div>
         <div style={styles.empty}>
-          <div style={styles.emptyIcon}>🚀</div>
-          <div style={styles.emptyText}>No startups yet. Upload documents to get started!</div>
-          <a href="/upload" style={styles.button}>Upload Documents</a>
+          <div style={styles.emptyIcon}>�</div>
+          <h3 style={styles.emptyTitle}>No startups tracked yet</h3>
+          <p style={styles.emptyText}>
+            Upload pitch decks or financial documents to begin analyzing potential investments with AI.
+          </p>
+          <a
+            href="/upload"
+            style={{ ...styles.button, ...(isHovering ? styles.buttonHover : {}) }}
+            onMouseEnter={() => setIsHovering(true)}
+            onMouseLeave={() => setIsHovering(false)}
+          >
+            <Plus size={18} />
+            Upload New Documents
+          </a>
         </div>
       </div>
     );
@@ -125,7 +161,7 @@ function Dashboard({ onSelectStartup }) {
       <div style={styles.header}>
         <h1 style={styles.title}>Startup Dashboard</h1>
         <p style={styles.subtitle}>
-          {startups.length} startup{startups.length !== 1 ? 's' : ''} in your portfolio
+          Following {startups.length} active {startups.length !== 1 ? 'companies' : 'company'}
         </p>
       </div>
 

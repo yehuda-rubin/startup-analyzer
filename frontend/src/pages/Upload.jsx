@@ -14,7 +14,7 @@ const styles = {
   title: {
     fontSize: '32px',
     fontWeight: 'bold',
-    color: '#2c3e50',
+    color: '#f8fafc',
     marginBottom: '10px',
   },
   subtitle: {
@@ -60,8 +60,8 @@ function Upload() {
       <div style={styles.header}>
         <h1 style={styles.title}>Upload Startup Documents</h1>
         <p style={styles.subtitle}>
-          Upload pitch decks, financial reports, business plans, and other documents 
-          to begin AI-powered analysis. Our system will extract insights, generate scores, 
+          Upload pitch decks, financial reports, business plans, and other documents
+          to begin AI-powered analysis. Our system will extract insights, generate scores,
           and provide comprehensive market analysis.
         </p>
       </div>

@@ -1,13 +1,13 @@
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Zap, Briefcase, LogOut, User } from 'lucide-react';
+import { Zap, Briefcase, LogOut } from 'lucide-react';
 
 const styles = {
   nav: {
-    backgroundColor: 'rgba(15, 23, 42, 0.8)', // slate-900/80
+    backgroundColor: 'rgba(255, 255, 255, 0.95)', // White/95
     backdropFilter: 'blur(12px)',
-    borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
+    borderBottom: '1px solid #e2e8f0', // Slate-200
     padding: '0 24px',
     height: '64px',
     position: 'fixed',
@@ -24,8 +24,13 @@ const styles = {
     justifyContent: 'space-between',
     alignItems: 'center',
   },
+  brandGroup: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+  },
   brand: {
-    color: '#fff',
+    color: '#0f172a', // Slate-900 (Dark for light bg)
     fontSize: '20px',
     fontWeight: '700',
     textDecoration: 'none',
@@ -42,7 +47,7 @@ const styles = {
     alignItems: 'center',
   },
   link: {
-    color: '#94a3b8', // slate-400
+    color: '#475569', // Slate-600
     textDecoration: 'none',
     padding: '8px 16px',
     borderRadius: '8px',
@@ -51,9 +56,20 @@ const styles = {
     transition: 'all 0.2s',
   },
   linkActive: {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    color: '#f8fafc', // slate-50
+    backgroundColor: '#f1f5f9', // Slate-100
+    color: '#3b82f6', // Electric Blue
   },
+  roleLabel: {
+    fontSize: '11px',
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: '0.05em',
+    padding: '2px 8px',
+    borderRadius: '4px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '4px',
+  }
 };
 
 function Navbar() {
@@ -74,12 +90,34 @@ function Navbar() {
 
   if (!currentUser) return null;
 
+  // Role Styling
+  const isEntrepreneur = userRole === 'entrepreneur';
+  const roleColor = isEntrepreneur ? '#818cf8' : '#34d399'; // Indigo-400 : Emerald-400
+  const roleBg = isEntrepreneur ? 'rgba(99, 102, 241, 0.1)' : 'rgba(52, 211, 153, 0.1)';
+  const roleBorder = isEntrepreneur ? 'rgba(99, 102, 241, 0.2)' : 'rgba(52, 211, 153, 0.2)';
+
   return (
     <nav style={styles.nav}>
       <div style={styles.container}>
-        <Link to="/" style={styles.brand}>
-          <span>🚀</span> Roots
-        </Link>
+
+        {/* Brand + Role Label */}
+        <div style={styles.brandGroup}>
+          <Link to="/" style={styles.brand}>
+            <span>🚀</span> Roots
+          </Link>
+
+          {userRole && (
+            <span style={{
+              ...styles.roleLabel,
+              color: roleColor,
+              backgroundColor: roleBg,
+              border: `1px solid ${roleBorder}`
+            }}>
+              {isEntrepreneur ? <Zap size={10} /> : <Briefcase size={10} />}
+              {userRole}
+            </span>
+          )}
+        </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
           <ul style={styles.links}>
@@ -101,28 +139,10 @@ function Navbar() {
             })}
           </ul>
 
-          <div className="flex items-center gap-4 pl-4 border-l border-white/10 h-8">
-            {/* Dynamic Role Badge */}
-            {userRole && (
-              <div
-                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-[10px] font-bold uppercase tracking-wider
-                  ${userRole === 'entrepreneur'
-                    ? 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20 shadow-[0_0_10px_rgba(99,102,241,0.1)]'
-                    : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20 shadow-[0_0_10px_rgba(16,185,129,0.1)]'
-                  }`}
-              >
-                {userRole === 'entrepreneur' ? (
-                  <Zap className="h-3 w-3" />
-                ) : (
-                  <Briefcase className="h-3 w-3" />
-                )}
-                {userRole}
-              </div>
-            )}
-
+          <div className="flex items-center gap-4 pl-4 border-l border-slate-200 h-8">
             {/* User Identity */}
-            <div className="flex items-center gap-2 text-slate-400 text-xs hidden md:flex">
-              <span className="max-w-[100px] truncate" title={currentUser.email}>
+            <div className="flex items-center gap-2 text-slate-900 text-xs hidden md:flex">
+              <span className="max-w-[100px] truncate font-medium" title={currentUser.email}>
                 {currentUser.email}
               </span>
             </div>
@@ -130,7 +150,7 @@ function Navbar() {
             {/* Logout Button */}
             <button
               onClick={handleLogout}
-              className="text-slate-400 hover:text-white transition-colors p-1.5 rounded-lg hover:bg-white/5"
+              className="text-slate-500 hover:text-red-600 transition-colors p-1.5 rounded-lg hover:bg-red-50"
               title="Sign Out"
             >
               <LogOut className="h-4 w-4" />

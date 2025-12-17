@@ -16,7 +16,7 @@ const styles = {
   title: {
     fontSize: '32px',
     fontWeight: 'bold',
-    color: '#2c3e50',
+    color: '#f8fafc',
   },
   select: {
     padding: '10px 15px',

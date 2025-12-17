@@ -12,28 +12,14 @@ import Reports from './pages/Reports';
 import Login from './pages/Login';
 import SignUp from './pages/SignUp';
 
-const styles = {
-  app: {
-    minHeight: '100vh',
-    backgroundColor: '#020617', // slate-950 consistent with dark theme
-    color: '#e2e8f0', // slate-200 text
-  },
-  main: {
-    padding: '24px',
-    maxWidth: '1280px', // max-w-7xl
-    margin: '0 auto',
-    paddingTop: '80px', // Space for fixed navbar
-  }
-};
-
-function App() {
+const App = () => {
   const [selectedStartup, setSelectedStartup] = useState(null);
 
   // Layout wrapper for protected pages to include Navbar
   const ProtectedLayout = ({ children }) => (
     <ProtectedRoute>
       <Navbar />
-      <main style={styles.main}>
+      <main className="max-w-7xl mx-auto pt-20 px-6">
         {children}
       </main>
     </ProtectedRoute>
@@ -42,7 +28,7 @@ function App() {
   return (
     <AuthProvider>
       <Router>
-        <div style={styles.app}>
+        <div className="min-h-screen bg-slate-900 text-slate-50 font-sans">
           <Routes>
             {/* Public Routes */}
             <Route path="/login" element={<Login />} />

@@ -9,7 +9,7 @@ const styles = {
   title: {
     fontSize: '32px',
     fontWeight: 'bold',
-    color: '#2c3e50',
+    color: '#f8fafc',
     marginBottom: '30px',
   },
   selectionGrid: {
@@ -143,7 +143,7 @@ function Comparison() {
     if (selectedIds.length === 0) return [];
 
     const categories = ['Team', 'Product', 'Market', 'Traction', 'Financials', 'Innovation'];
-    
+
     return categories.map(category => {
       const dataPoint = { category };
       selectedIds.forEach(id => {

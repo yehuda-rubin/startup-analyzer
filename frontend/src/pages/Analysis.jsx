@@ -2,12 +2,12 @@ import React, { useState, useEffect } from 'react';
 import ScoreAnalysis from '../components/ScoreAnalysis';
 import ReactMarkdown from 'react-markdown';
 import { useParams } from 'react-router-dom';
-import { 
-  listStartups, 
-  analyzeStartup, 
+import {
+  listStartups,
+  analyzeStartup,
   getStartupAnalyses,
   calculateScore,
-  getStartupScores 
+  getStartupScores
 } from '../services/api';
 import ScoreGauge from '../components/ScoreGauge';
 
@@ -24,7 +24,7 @@ const styles = {
   title: {
     fontSize: '32px',
     fontWeight: 'bold',
-    color: '#2c3e50',
+    color: '#f8fafc',
   },
   select: {
     padding: '10px 15px',
@@ -146,13 +146,13 @@ function Analysis() {
 
   const loadData = async () => {
     if (!selectedStartupId) return;
-    
+
     setLoading(true);
     try {
       // Load latest analysis
       const analyses = await getStartupAnalyses(parseInt(selectedStartupId));
       console.log('🔍 Analyses received:', analyses); // ← הוסף את זה!
-      
+
       if (analyses.length > 0) {
         console.log('✅ First analysis:', analyses[0]); // ← הוסף את זה!
         console.log('✅ Has web_validation_summary?', !!analyses[0].web_validation_summary); // ← הוסף את זה!
