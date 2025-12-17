@@ -1,140 +1,32 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { deleteStartup } from '../services/api';
+import { Trash2, ArrowRight, Activity } from 'lucide-react';
 
 const getScoreColor = (score) => {
-  if (!score) return '#95a5a6';
-  if (score >= 80) return '#27ae60';
-  if (score >= 60) return '#f39c12';
-  return '#e74c3c';
-};
-
-const styles = {
-  card: {
-    backgroundColor: 'white',
-    borderRadius: '12px',
-    padding: '24px',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-    cursor: 'pointer',
-    transition: 'all 0.3s ease',
-    position: 'relative',
-  },
-  cardHover: {
-    transform: 'translateY(-4px)',
-    boxShadow: '0 4px 16px rgba(0,0,0,0.15)',
-  },
-  header: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'start',
-    marginBottom: '12px',
-  },
-  name: {
-    fontSize: '20px',
-    fontWeight: '700',
-    color: '#2c3e50',
-    margin: '0',
-    flex: 1,
-  },
-  score: {
-    fontSize: '24px',
-    fontWeight: '700',
-    marginLeft: '12px',
-  },
-  description: {
-    color: '#555',
-    fontSize: '14px',
-    marginBottom: '16px',
-    lineHeight: '1.5',
-  },
-  meta: {
-    display: 'flex',
-    gap: '8px',
-    flexWrap: 'wrap',
-    marginBottom: '16px',
-  },
-  badge: {
-    padding: '4px 12px',
-    borderRadius: '12px',
-    fontSize: '13px',
-    fontWeight: '600',
-  },
-  badgeIndustry: {
-    backgroundColor: '#e8f4f8',
-    color: '#2980b9',
-  },
-  badgeStage: {
-    backgroundColor: '#fce8f3',
-    color: '#8e44ad',
-  },
-  actions: {
-    display: 'flex',
-    gap: '8px',
-  },
-  button: {
-    padding: '10px 16px',
-    border: 'none',
-    borderRadius: '6px',
-    fontSize: '14px',
-    fontWeight: '600',
-    cursor: 'pointer',
-    transition: 'all 0.2s',
-    flex: 1,
-  },
-  buttonPrimary: {
-    backgroundColor: '#3498db',
-    color: 'white',
-  },
-  buttonSecondary: {
-    backgroundColor: '#ecf0f1',
-    color: '#2c3e50',
-  },
-  buttonDelete: {
-    backgroundColor: '#e74c3c',
-    color: 'white',
-    flex: '0 0 auto',
-    padding: '10px 12px',
-  },
-  deleteIcon: {
-    fontSize: '16px',
-  },
+  if (!score) return 'text-zinc-500';
+  if (score >= 80) return 'text-[#00FF41] drop-shadow-[0_0_8px_rgba(0,255,65,0.5)]'; // Neon Green
+  if (score >= 60) return 'text-[#00E5FF] drop-shadow-[0_0_8px_rgba(0,229,255,0.5)]'; // Neon Cyan
+  return 'text-red-500 drop-shadow-[0_0_8px_rgba(239,68,68,0.5)]'; // Red
 };
 
 function StartupCard({ startup, score, onClick, onDelete }) {
   const navigate = useNavigate();
-  const [isHovered, setIsHovered] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
   const handleDelete = async (e) => {
     e.stopPropagation();
-    
+
     // First confirmation
     const confirmFirst = window.confirm(
-      `Are you sure you want to delete "${startup.name}"?\n\n` +
-      `This will delete:\n` +
-      `• All uploaded documents\n` +
-      `• All analysis data\n` +
-      `• All scores and market data\n\n` +
-      `This action cannot be undone.`
+      `Delete "${startup.name}"?\n\nThis will permanently destroy all analysis and market data.`
     );
-    
+
     if (!confirmFirst) return;
-    
-    // Second confirmation
-    const confirmSecond = window.confirm(
-      `⚠️ FINAL CONFIRMATION ⚠️\n\n` +
-      `Delete "${startup.name}" permanently?\n\n` +
-      `Type the startup name to confirm: ${startup.name}`
-    );
-    
-    if (!confirmSecond) return;
-    
+
     setIsDeleting(true);
     try {
       await deleteStartup(startup.id);
-      alert(`✓ "${startup.name}" deleted successfully`);
-      
-      // Call onDelete callback to refresh the list
       if (onDelete) {
         onDelete(startup.id);
       }
@@ -148,72 +40,75 @@ function StartupCard({ startup, score, onClick, onDelete }) {
 
   return (
     <div
-      style={{
-        ...styles.card,
-        ...(isHovered ? styles.cardHover : {}),
-      }}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
       onClick={() => onClick && onClick(startup)}
+      className="group relative bg-[#0A0A0A]/80 backdrop-blur-md border border-white/5 rounded-xl p-6 
+        transition-all duration-300 hover:border-[#00FF41]/30 hover:shadow-[0_0_30px_rgba(0,255,65,0.1)] hover:-translate-y-1 cursor-pointer overflow-hidden"
     >
-      <div style={styles.header}>
-        <h3 style={styles.name}>{startup.name}</h3>
-        {score && (
-          <span style={{
-            ...styles.score,
-            color: getScoreColor(score)
-          }}>
-            {score}
-          </span>
-        )}
-      </div>
+      {/* Hover Gradient Overlay */}
+      <div className="absolute inset-0 bg-gradient-to-br from-[#00FF41]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
 
-      {startup.description && (
-        <p style={styles.description}>{startup.description}</p>
-      )}
+      <div className="relative z-10">
+        <div className="flex justify-between items-start mb-4">
+          <h3 className="text-xl font-bold text-white group-hover:text-[#00FF41] transition-colors truncate pr-4">
+            {startup.name}
+          </h3>
+          {score && (
+            <div className={`text-2xl font-bold ${getScoreColor(score)} flex items-center gap-1`}>
+              <Activity size={16} />
+              {score}
+            </div>
+          )}
+        </div>
 
-      <div style={styles.meta}>
-        {startup.industry && (
-          <span style={{...styles.badge, ...styles.badgeIndustry}}>
-            {startup.industry}
-          </span>
+        {startup.description && (
+          <p className="text-zinc-400 text-sm mb-6 line-clamp-2 leading-relaxed">
+            {startup.description}
+          </p>
         )}
-        {startup.stage && (
-          <span style={{...styles.badge, ...styles.badgeStage}}>
-            {startup.stage}
-          </span>
-        )}
-      </div>
 
-      <div style={styles.actions}>
-        <button
-          style={{...styles.button, ...styles.buttonPrimary}}
-          onClick={(e) => {
-            e.stopPropagation();
-            navigate(`/analysis/${startup.id}`);
-          }}
-        >
-          View Analysis
-        </button>
-        <button
-          style={{...styles.button, ...styles.buttonSecondary}}
-          onClick={(e) => {
-            e.stopPropagation();
-            navigate(`/market/${startup.id}`);
-          }}
-        >
-          Market Data
-        </button>
-        <button
-          style={{...styles.button, ...styles.buttonDelete}}
-          onClick={handleDelete}
-          disabled={isDeleting}
-          title="Delete Startup"
-        >
-          <span style={styles.deleteIcon}>
-            {isDeleting ? '⏳' : '🗑️'}
-          </span>
-        </button>
+        <div className="flex gap-2 flex-wrap mb-6">
+          {startup.industry && (
+            <span className="px-3 py-1 rounded-full text-xs font-medium bg-[#00E5FF]/10 text-[#00E5FF] border border-[#00E5FF]/20">
+              {startup.industry}
+            </span>
+          )}
+          {startup.stage && (
+            <span className="px-3 py-1 rounded-full text-xs font-medium bg-[#00FF41]/10 text-[#00FF41] border border-[#00FF41]/20">
+              {startup.stage}
+            </span>
+          )}
+        </div>
+
+        <div className="flex gap-3">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate(`/analysis/${startup.id}`);
+            }}
+            className="flex-1 px-4 py-2 bg-white/5 hover:bg-[#00FF41] hover:text-black text-white rounded-lg text-sm font-semibold transition-all duration-300 flex items-center justify-center gap-2 group/btn"
+          >
+            Analysis <ArrowRight size={14} className="group-hover/btn:translate-x-1 transition-transform" />
+          </button>
+
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate(`/market/${startup.id}`);
+            }}
+            className="px-4 py-2 bg-white/5 hover:bg-[#00E5FF] hover:text-black text-white rounded-lg text-sm font-medium transition-all duration-300"
+          >
+            Market
+          </button>
+
+          <button
+            onClick={handleDelete}
+            disabled={isDeleting}
+            className="px-3 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/20 rounded-lg transition-all duration-300 hover:shadow-[0_0_15px_rgba(239,68,68,0.2)]"
+            title="Delete Startup"
+          >
+            {isDeleting ? '...' : <Trash2 size={16} />}
+          </button>
+        </div>
       </div>
     </div>
   );

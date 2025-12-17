@@ -1,100 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { listStartups, getStartupScores } from '../services/api';
 import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Legend, ResponsiveContainer } from 'recharts';
-
-const styles = {
-  container: {
-    padding: '20px',
-  },
-  title: {
-    fontSize: '32px',
-    fontWeight: 'bold',
-    color: '#f8fafc',
-    marginBottom: '30px',
-  },
-  selectionGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
-    gap: '15px',
-    marginBottom: '30px',
-  },
-  checkboxCard: {
-    padding: '15px',
-    backgroundColor: '#fff',
-    borderRadius: '8px',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-    cursor: 'pointer',
-    transition: 'all 0.3s',
-  },
-  checkboxCardSelected: {
-    backgroundColor: '#e3f2fd',
-    borderLeft: '4px solid #2196f3',
-  },
-  checkboxLabel: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '10px',
-  },
-  checkbox: {
-    width: '20px',
-    height: '20px',
-    cursor: 'pointer',
-  },
-  startupName: {
-    fontWeight: '600',
-    fontSize: '16px',
-    color: '#2c3e50',
-  },
-  chart: {
-    backgroundColor: '#fff',
-    borderRadius: '8px',
-    padding: '30px',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-    marginBottom: '20px',
-  },
-  chartTitle: {
-    fontSize: '20px',
-    fontWeight: 'bold',
-    marginBottom: '20px',
-    textAlign: 'center',
-    color: '#2c3e50',
-  },
-  table: {
-    width: '100%',
-    backgroundColor: '#fff',
-    borderRadius: '8px',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-    borderCollapse: 'collapse',
-  },
-  th: {
-    padding: '15px',
-    backgroundColor: '#f8f9fa',
-    fontWeight: 'bold',
-    textAlign: 'left',
-    borderBottom: '2px solid #dee2e6',
-    color: '#2c3e50',
-  },
-  td: {
-    padding: '12px 15px',
-    borderBottom: '1px solid #dee2e6',
-  },
-  scoreCell: {
-    fontWeight: 'bold',
-    fontSize: '18px',
-  },
-  loading: {
-    textAlign: 'center',
-    padding: '40px',
-    fontSize: '18px',
-    color: '#95a5a6',
-  },
-  empty: {
-    textAlign: 'center',
-    padding: '40px',
-    fontSize: '16px',
-    color: '#7f8c8d',
-  },
-};
+import { Scale, Check, AlertCircle, Loader2 } from 'lucide-react';
 
 function Comparison() {
   const [startups, setStartups] = useState([]);
@@ -159,140 +66,170 @@ function Comparison() {
   };
 
   const getColor = (index) => {
-    const colors = ['#3498db', '#2ecc71', '#f39c12', '#e74c3c', '#9b59b6', '#1abc9c'];
+    const colors = ['#00FF41', '#00E5FF', '#f39c12', '#e74c3c', '#9b59b6', '#1abc9c'];
     return colors[index % colors.length];
   };
 
   const getScoreColor = (score) => {
-    if (score >= 80) return '#27ae60';
-    if (score >= 60) return '#f39c12';
-    return '#e74c3c';
+    if (score >= 80) return 'text-[#00FF41]';
+    if (score >= 60) return 'text-[#00E5FF]';
+    return 'text-red-500';
   };
 
   if (loading) {
-    return <div style={styles.loading}>Loading comparison data...</div>;
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[50vh] text-zinc-500 animate-pulse">
+        <Loader2 className="w-12 h-12 mb-4 opacity-50 text-[#00E5FF] animate-spin" />
+        <p className="text-lg tracking-wider font-mono">Loading Data...</p>
+      </div>
+    );
   }
 
   const selectedStartups = selectedIds.map(id => startups.find(s => s.id === id)).filter(Boolean);
   const radarData = getRadarData();
 
   return (
-    <div style={styles.container}>
-      <h1 style={styles.title}>Compare Startups</h1>
+    <div className="max-w-7xl mx-auto pb-20">
+      <div className="mb-12">
+        <h1 className="text-4xl font-bold text-white mb-2 tracking-tight flex items-center gap-3">
+          <Scale className="text-[#00FF41]" /> Entity Comparison
+        </h1>
+        <p className="text-zinc-400">
+          Compare startup metrics and performance scores side-by-side
+        </p>
+      </div>
 
-      <div style={styles.selectionGrid}>
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-12">
         {startups.map(startup => (
           <div
             key={startup.id}
-            style={{
-              ...styles.checkboxCard,
-              ...(selectedIds.includes(startup.id) ? styles.checkboxCardSelected : {})
-            }}
             onClick={() => toggleStartup(startup.id)}
+            className={`p-4 rounded-xl cursor-pointer transition-all duration-300 border backdrop-blur-md
+              ${selectedIds.includes(startup.id)
+                ? 'bg-[#00E5FF]/10 border-[#00E5FF] shadow-[0_0_15px_rgba(0,229,255,0.15)] relative z-10'
+                : 'bg-black/40 border-zinc-800 hover:border-zinc-600 hover:bg-white/5'
+              }`}
           >
-            <label style={styles.checkboxLabel}>
-              <input
-                type="checkbox"
-                checked={selectedIds.includes(startup.id)}
-                onChange={() => toggleStartup(startup.id)}
-                style={styles.checkbox}
-              />
-              <div>
-                <div style={styles.startupName}>{startup.name}</div>
-                {scores[startup.id] && (
-                  <div style={{ fontSize: '14px', color: '#7f8c8d' }}>
-                    Score: {scores[startup.id].overall_score}
-                  </div>
-                )}
+            <div className="flex items-start justify-between mb-2">
+              <span className={`font-bold transition-colors ${selectedIds.includes(startup.id) ? 'text-white' : 'text-zinc-400'}`}>
+                {startup.name}
+              </span>
+              <div className={`w-5 h-5 rounded flex items-center justify-center border transition-colors
+                  ${selectedIds.includes(startup.id) ? 'bg-[#00E5FF] border-[#00E5FF]' : 'border-zinc-600 bg-transparent'}
+               `}>
+                {selectedIds.includes(startup.id) && <Check size={14} className="text-black font-bold" />}
               </div>
-            </label>
+            </div>
+
+            {scores[startup.id] ? (
+              <div className="flex items-end gap-2">
+                <span className={`text-2xl font-bold ${getScoreColor(scores[startup.id].overall_score)}`}>
+                  {scores[startup.id].overall_score.toFixed(0)}
+                </span>
+                <span className="text-xs text-zinc-500 mb-1 font-mono uppercase">Overall Score</span>
+              </div>
+            ) : (
+              <span className="text-xs text-zinc-600 font-mono">No Score Data</span>
+            )}
           </div>
         ))}
       </div>
 
       {selectedIds.length === 0 && (
-        <div style={styles.empty}>
-          Select 2 or more startups to compare
+        <div className="text-center py-20 border border-dashed border-zinc-800 rounded-xl bg-white/5 text-zinc-500">
+          <Scale className="w-12 h-12 mx-auto mb-4 opacity-50" />
+          <p>Select 2 or more entities to initiate comparison sequence</p>
         </div>
       )}
 
       {selectedIds.length > 0 && (
-        <>
-          <div style={styles.chart}>
-            <h3 style={styles.chartTitle}>Category Comparison</h3>
-            <ResponsiveContainer width="100%" height={400}>
-              <RadarChart data={radarData}>
-                <PolarGrid />
-                <PolarAngleAxis dataKey="category" />
-                <PolarRadiusAxis angle={90} domain={[0, 100]} />
-                {selectedStartups.map((startup, index) => (
-                  <Radar
-                    key={startup.id}
-                    name={startup.name}
-                    dataKey={startup.name}
-                    stroke={getColor(index)}
-                    fill={getColor(index)}
-                    fillOpacity={0.3}
-                  />
-                ))}
-                <Legend />
-              </RadarChart>
-            </ResponsiveContainer>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+
+          {/* Chart */}
+          <div className="bg-[#0A0A0A]/80 backdrop-blur-xl border border-white/5 rounded-xl p-8">
+            <h3 className="text-xl font-bold text-white mb-6 text-center">Metric Overlay</h3>
+            <div className="h-[400px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <RadarChart cx="50%" cy="50%" outerRadius="80%" data={radarData}>
+                  <PolarGrid stroke="#333" />
+                  <PolarAngleAxis dataKey="category" tick={{ fill: '#9CA3AF', fontSize: 12 }} />
+                  <PolarRadiusAxis angle={30} domain={[0, 100]} stroke="#333" tick={{ fill: '#666' }} />
+                  {selectedStartups.map((startup, index) => (
+                    <Radar
+                      key={startup.id}
+                      name={startup.name}
+                      dataKey={startup.name}
+                      stroke={getColor(index)}
+                      fill={getColor(index)}
+                      fillOpacity={0.2}
+                    />
+                  ))}
+                  <Legend wrapperStyle={{ color: '#fff', paddingTop: '20px' }} />
+                </RadarChart>
+              </ResponsiveContainer>
+            </div>
           </div>
 
-          <table style={styles.table}>
-            <thead>
-              <tr>
-                <th style={styles.th}>Category</th>
-                {selectedStartups.map(startup => (
-                  <th key={startup.id} style={styles.th}>{startup.name}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td style={{ ...styles.td, fontWeight: 'bold' }}>Overall Score</td>
-                {selectedStartups.map(startup => {
-                  const score = scores[startup.id];
-                  return (
-                    <td key={startup.id} style={{
-                      ...styles.td,
-                      ...styles.scoreCell,
-                      color: getScoreColor(score?.overall_score || 0)
-                    }}>
-                      {score?.overall_score?.toFixed(1) || 'N/A'}
-                    </td>
-                  );
-                })}
-              </tr>
-              {['Team', 'Product', 'Market', 'Traction', 'Financials', 'Innovation'].map(category => (
-                <tr key={category}>
-                  <td style={styles.td}>{category}</td>
-                  {selectedStartups.map(startup => {
-                    const score = scores[startup.id];
-                    const categoryScore = score?.category_scores?.[category.toLowerCase()];
-                    return (
-                      <td key={startup.id} style={styles.td}>
-                        {categoryScore?.toFixed(1) || 'N/A'}
-                      </td>
-                    );
-                  })}
-                </tr>
-              ))}
-              <tr>
-                <td style={styles.td}>Confidence</td>
-                {selectedStartups.map(startup => {
-                  const score = scores[startup.id];
-                  return (
-                    <td key={startup.id} style={styles.td}>
-                      {score?.confidence_level || 'N/A'}
-                    </td>
-                  );
-                })}
-              </tr>
-            </tbody>
-          </table>
-        </>
+          {/* Table */}
+          <div className="bg-[#0A0A0A]/80 backdrop-blur-xl border border-white/5 rounded-xl p-0 overflow-hidden">
+            <div className="p-6 border-b border-white/5">
+              <h3 className="text-xl font-bold text-white mb-0">Detailed Specs</h3>
+            </div>
+            <div className="overflow-x-auto custom-scrollbar">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr>
+                    <th className="p-4 text-xs font-bold text-zinc-500 uppercase tracking-wider bg-black/20 border-b border-zinc-800 sticky left-0 z-10 backdrop-blur-md">Category</th>
+                    {selectedStartups.map(startup => (
+                      <th key={startup.id} className="p-4 text-sm font-bold text-white border-b border-zinc-800 min-w-[120px] whitespace-nowrap">
+                        {startup.name}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-zinc-800/50">
+                  <tr className="bg-white/5">
+                    <td className="p-4 text-sm font-bold text-white sticky left-0 bg-[#0A0A0A] border-r border-zinc-800 z-10 backdrop-blur-md">Overall Score</td>
+                    {selectedStartups.map(startup => {
+                      const score = scores[startup.id];
+                      return (
+                        <td key={startup.id} className={`p-4 text-lg font-bold ${getScoreColor(score?.overall_score || 0)}`}>
+                          {score?.overall_score?.toFixed(1) || 'N/A'}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                  {['Team', 'Product', 'Market', 'Traction', 'Financials', 'Innovation'].map(category => (
+                    <tr key={category} className="hover:bg-white/5 transition-colors">
+                      <td className="p-4 text-sm text-zinc-400 sticky left-0 bg-[#0A0A0A] border-r border-zinc-800 z-10 backdrop-blur-md">{category}</td>
+                      {selectedStartups.map(startup => {
+                        const score = scores[startup.id];
+                        const categoryScore = score?.category_scores?.[category.toLowerCase()];
+                        return (
+                          <td key={startup.id} className="p-4 text-sm text-zinc-300 font-mono">
+                            {categoryScore?.toFixed(1) || 'N/A'}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  ))}
+                  <tr>
+                    <td className="p-4 text-sm text-zinc-400 sticky left-0 bg-[#0A0A0A] border-r border-zinc-800 z-10 backdrop-blur-md">Confidence</td>
+                    {selectedStartups.map(startup => {
+                      const score = scores[startup.id];
+                      return (
+                        <td key={startup.id} className="p-4 text-sm text-zinc-500 font-mono">
+                          {score?.confidence_level || 'N/A'}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
       )}
     </div>
   );

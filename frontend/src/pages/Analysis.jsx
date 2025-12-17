@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import ScoreAnalysis from '../components/ScoreAnalysis';
-import ReactMarkdown from 'react-markdown';
 import { useParams } from 'react-router-dom';
 import {
   listStartups,
@@ -10,107 +9,7 @@ import {
   getStartupScores
 } from '../services/api';
 import ScoreGauge from '../components/ScoreGauge';
-
-const styles = {
-  container: {
-    padding: '20px',
-  },
-  header: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: '30px',
-  },
-  title: {
-    fontSize: '32px',
-    fontWeight: 'bold',
-    color: '#f8fafc',
-  },
-  select: {
-    padding: '10px 15px',
-    border: '1px solid #ddd',
-    borderRadius: '4px',
-    fontSize: '16px',
-    minWidth: '250px',
-  },
-  actions: {
-    marginBottom: '20px',
-    display: 'flex',
-    gap: '10px',
-  },
-  button: {
-    padding: '12px 24px',
-    border: 'none',
-    borderRadius: '4px',
-    fontSize: '14px',
-    fontWeight: '600',
-    cursor: 'pointer',
-    transition: 'background-color 0.3s',
-  },
-  buttonPrimary: {
-    backgroundColor: '#3498db',
-    color: '#fff',
-  },
-  buttonSecondary: {
-    backgroundColor: '#2ecc71',
-    color: '#fff',
-  },
-  buttonDisabled: {
-    backgroundColor: '#95a5a6',
-    cursor: 'not-allowed',
-  },
-  grid: {
-    display: 'grid',
-    gridTemplateColumns: '1fr 2fr',
-    gap: '20px',
-    marginBottom: '20px',
-  },
-  card: {
-    backgroundColor: '#fff',
-    borderRadius: '8px',
-    padding: '25px',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-  },
-  cardTitle: {
-    fontSize: '20px',
-    fontWeight: 'bold',
-    marginBottom: '15px',
-    color: '#2c3e50',
-  },
-  section: {
-    marginBottom: '25px',
-  },
-  sectionTitle: {
-    fontSize: '16px',
-    fontWeight: 'bold',
-    marginBottom: '10px',
-    color: '#34495e',
-  },
-  list: {
-    listStyle: 'disc',
-    paddingLeft: '20px',
-  },
-  listItem: {
-    marginBottom: '8px',
-    lineHeight: '1.5',
-    color: '#555',
-  },
-  text: {
-    lineHeight: '1.6',
-    color: '#555',
-  },
-  loading: {
-    textAlign: 'center',
-    padding: '40px',
-    fontSize: '18px',
-    color: '#95a5a6',
-  },
-  empty: {
-    textAlign: 'center',
-    padding: '40px',
-    color: '#7f8c8d',
-  },
-};
+import { Search, Calculator, AlertCircle, CheckCircle2, AlertTriangle, Target, Zap, Loader2 } from 'lucide-react';
 
 function Analysis() {
   const { startupId: urlStartupId } = useParams();
@@ -151,11 +50,7 @@ function Analysis() {
     try {
       // Load latest analysis
       const analyses = await getStartupAnalyses(parseInt(selectedStartupId));
-      console.log('🔍 Analyses received:', analyses); // ← הוסף את זה!
-
       if (analyses.length > 0) {
-        console.log('✅ First analysis:', analyses[0]); // ← הוסף את זה!
-        console.log('✅ Has web_validation_summary?', !!analyses[0].web_validation_summary); // ← הוסף את זה!
         setAnalysis(analyses[0]);
       } else {
         setAnalysis(null);
@@ -205,60 +100,80 @@ function Analysis() {
     }
   };
 
-  const selectedStartup = startups.find(s => s.id === parseInt(selectedStartupId));
-
   return (
-    <div style={styles.container}>
-      <div style={styles.header}>
-        <h1 style={styles.title}>Startup Analysis</h1>
-        <select
-          value={selectedStartupId}
-          onChange={(e) => setSelectedStartupId(e.target.value)}
-          style={styles.select}
-        >
-          <option value="">Select a startup...</option>
-          {startups.map(startup => (
-            <option key={startup.id} value={startup.id}>
-              {startup.name}
-            </option>
-          ))}
-        </select>
+    <div className="max-w-7xl mx-auto pb-20">
+      <div className="flex justify-between items-center mb-12">
+        <h1 className="text-4xl font-bold text-white tracking-tight flex items-center gap-4">
+          Startup Analysis <span className="text-zinc-600 text-2xl font-normal">|</span> <span className="text-[#00FF41] font-mono text-2xl">Deep Scan</span>
+        </h1>
+        <div className="relative group">
+          <select
+            value={selectedStartupId}
+            onChange={(e) => setSelectedStartupId(e.target.value)}
+            className="appearance-none bg-[#0A0A0A] border border-zinc-800 text-white py-3 pl-4 pr-12 rounded-lg min-w-[250px] focus:outline-none focus:border-[#00FF41] focus:shadow-[0_0_15px_rgba(0,255,65,0.15)] transition-all"
+          >
+            <option value="">Select a startup...</option>
+            {startups.map(startup => (
+              <option key={startup.id} value={startup.id}>
+                {startup.name}
+              </option>
+            ))}
+          </select>
+          <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-500 group-hover:text-[#00FF41] transition-colors">
+            ▼
+          </div>
+        </div>
       </div>
 
       {selectedStartupId && (
-        <div style={styles.actions}>
+        <div className="flex gap-4 mb-12">
           <button
             onClick={handleAnalyze}
             disabled={analyzing}
-            style={{
-              ...styles.button,
-              ...styles.buttonPrimary,
-              ...(analyzing ? styles.buttonDisabled : {})
-            }}
+            className={`px-8 py-3 rounded-lg font-bold uppercase tracking-wide transition-all duration-300 shadow-lg flex items-center gap-2
+              ${analyzing
+                ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed'
+                : 'bg-gradient-to-r from-[#00E5FF] to-[#0055FF] text-white hover:scale-[1.02] shadow-[0_0_20px_rgba(0,229,255,0.2)] hover:shadow-[0_0_30px_rgba(0,229,255,0.4)]'
+              }`}
           >
-            {analyzing ? 'Analyzing...' : '🔍 Run Analysis'}
+            {analyzing ? (
+              <><Loader2 className="animate-spin h-5 w-5" /> Processing Deep Scan...</>
+            ) : (
+              <><Search className="h-5 w-5" /> Run Deep Analysis</>
+            )}
           </button>
+
           <button
             onClick={handleScore}
             disabled={scoring}
-            style={{
-              ...styles.button,
-              ...styles.buttonSecondary,
-              ...(scoring ? styles.buttonDisabled : {})
-            }}
+            className={`px-8 py-3 rounded-lg font-bold uppercase tracking-wide transition-all duration-300 shadow-lg flex items-center gap-2
+              ${scoring
+                ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed'
+                : 'bg-gradient-to-r from-[#00FF41] to-[#00CC33] text-black hover:scale-[1.02] shadow-[0_0_20px_rgba(0,255,65,0.2)] hover:shadow-[0_0_30px_rgba(0,255,65,0.4)]'
+              }`}
           >
-            {scoring ? 'Scoring...' : '📊 Calculate Score'}
+            {scoring ? (
+              <><Loader2 className="animate-spin h-5 w-5" /> Calculating Vector Score...</>
+            ) : (
+              <><Calculator className="h-5 w-5" /> Calculate Score</>
+            )}
           </button>
         </div>
       )}
 
-      {loading && <div style={styles.loading}>Loading...</div>}
+      {loading && (
+        <div className="flex flex-col items-center justify-center min-h-[40vh] text-zinc-500 animate-pulse">
+          <Zap className="w-12 h-12 mb-4 opacity-50 text-[#00FF41]" />
+          <p className="text-lg tracking-wider font-mono">Retrieving Entity Data...</p>
+        </div>
+      )}
 
       {!loading && selectedStartupId && (
-        <>
+        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
           {score && (
-            <div style={styles.grid}>
-              <div style={styles.card}>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              <div className="bg-[#0A0A0A]/80 backdrop-blur-xl border border-white/5 rounded-xl p-8 relative overflow-hidden group">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-[#00FF41]/5 rounded-full blur-[80px] pointer-events-none" />
                 <ScoreGauge
                   overall_score={score.overall_score}
                   category_scores={score.category_scores}
@@ -266,10 +181,15 @@ function Analysis() {
                 />
               </div>
 
-              <div style={styles.card}>
-                <h3 style={styles.cardTitle}>Score Analysis</h3>
-                <div style={styles.section}>
-                  <div style={styles.sectionTitle}>Confidence: {score.confidence_level}</div>
+              <div className="lg:col-span-2 bg-[#0A0A0A]/80 backdrop-blur-xl border border-white/5 rounded-xl p-8">
+                <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
+                  <Target className="text-[#00FF41]" /> Score Analysis
+                </h3>
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 text-sm text-zinc-400 mb-4 bg-white/5 p-3 rounded-lg border border-white/5 inline-block">
+                    <span className="uppercase font-bold tracking-wider">Confidence Level:</span>
+                    <span className="text-white font-bold">{score.confidence_level}</span>
+                  </div>
                   <ScoreAnalysis reasoning={score.reasoning} />
                 </div>
               </div>
@@ -277,67 +197,99 @@ function Analysis() {
           )}
 
           {analysis && (
-            <div style={styles.card}>
-              <h3 style={styles.cardTitle}>Comprehensive Analysis</h3>
+            <div className="bg-[#0A0A0A]/80 backdrop-blur-xl border border-white/5 rounded-xl p-8 relative overflow-hidden">
+              {/* Background Glows */}
+              <div className="absolute bottom-0 left-0 w-96 h-96 bg-[#00E5FF]/5 rounded-full blur-[100px] pointer-events-none" />
 
-              <div style={styles.section}>
-                <div style={styles.sectionTitle}>Executive Summary</div>
-                <p style={styles.text}>{analysis.summary}</p>
+              <h3 className="text-2xl font-bold text-white mb-8 border-b border-white/10 pb-4">
+                Comprehensive Analysis Log
+              </h3>
+
+              <div className="mb-12">
+                <h4 className="text-[#00E5FF] text-sm font-bold uppercase tracking-wider mb-4 flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4" /> Executive Summary
+                </h4>
+                <p className="text-zinc-300 leading-relaxed text-lg border-l-2 border-[#00E5FF] pl-6 py-2 bg-gradient-to-r from-[#00E5FF]/10 to-transparent rounded-r-lg">
+                  {analysis.summary}
+                </p>
               </div>
 
               {analysis.key_insights && analysis.key_insights.length > 0 && (
-                <div style={styles.section}>
-                  <div style={styles.sectionTitle}>Key Insights</div>
-                  <ul style={styles.list}>
+                <div className="mb-12">
+                  <h4 className="text-[#E0E0E0] text-sm font-bold uppercase tracking-wider mb-6">Key Insights</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {analysis.key_insights.map((insight, i) => (
-                      <li key={i} style={styles.listItem}>{insight}</li>
+                      <div key={i} className="flex gap-4 p-4 rounded-lg bg-white/5 border border-white/5 hover:border-[#00E5FF]/30 transition-colors">
+                        <div className="text-[#00E5FF] font-bold text-xl pt-1">0{i + 1}</div>
+                        <p className="text-zinc-400 text-sm leading-relaxed">{insight}</p>
+                      </div>
                     ))}
-                  </ul>
+                  </div>
                 </div>
               )}
 
-              <div style={styles.grid}>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
                 {analysis.strengths && analysis.strengths.length > 0 && (
-                  <div style={styles.section}>
-                    <div style={styles.sectionTitle}>✅ Strengths</div>
-                    <ul style={styles.list}>
+                  <div className="bg-[#00FF41]/5 rounded-xl p-6 border border-[#00FF41]/10">
+                    <h4 className="text-[#00FF41] font-bold uppercase tracking-wider mb-6 flex items-center gap-2">
+                      <CheckCircle2 className="w-5 h-5" /> Strengths
+                    </h4>
+                    <ul className="space-y-3">
                       {analysis.strengths.map((item, i) => (
-                        <li key={i} style={styles.listItem}>{item}</li>
+                        <li key={i} className="flex gap-3 text-zinc-300 text-sm">
+                          <span className="w-1.5 h-1.5 rounded-full bg-[#00FF41] mt-2 shrink-0" />
+                          {item}
+                        </li>
                       ))}
                     </ul>
                   </div>
                 )}
 
                 {analysis.weaknesses && analysis.weaknesses.length > 0 && (
-                  <div style={styles.section}>
-                    <div style={styles.sectionTitle}>⚠️ Weaknesses</div>
-                    <ul style={styles.list}>
+                  <div className="bg-red-500/5 rounded-xl p-6 border border-red-500/10">
+                    <h4 className="text-red-500 font-bold uppercase tracking-wider mb-6 flex items-center gap-2">
+                      <AlertTriangle className="w-5 h-5" /> Weaknesses
+                    </h4>
+                    <ul className="space-y-3">
                       {analysis.weaknesses.map((item, i) => (
-                        <li key={i} style={styles.listItem}>{item}</li>
+                        <li key={i} className="flex gap-3 text-zinc-300 text-sm">
+                          <span className="w-1.5 h-1.5 rounded-full bg-red-500 mt-2 shrink-0" />
+                          {item}
+                        </li>
                       ))}
                     </ul>
                   </div>
                 )}
               </div>
 
-              <div style={styles.grid}>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {analysis.opportunities && analysis.opportunities.length > 0 && (
-                  <div style={styles.section}>
-                    <div style={styles.sectionTitle}>🚀 Opportunities</div>
-                    <ul style={styles.list}>
+                  <div className="bg-[#00E5FF]/5 rounded-xl p-6 border border-[#00E5FF]/10">
+                    <h4 className="text-[#00E5FF] font-bold uppercase tracking-wider mb-6 flex items-center gap-2">
+                      <Zap className="w-5 h-5" /> Opportunities
+                    </h4>
+                    <ul className="space-y-3">
                       {analysis.opportunities.map((item, i) => (
-                        <li key={i} style={styles.listItem}>{item}</li>
+                        <li key={i} className="flex gap-3 text-zinc-300 text-sm">
+                          <span className="w-1.5 h-1.5 rounded-full bg-[#00E5FF] mt-2 shrink-0" />
+                          {item}
+                        </li>
                       ))}
                     </ul>
                   </div>
                 )}
 
                 {analysis.threats && analysis.threats.length > 0 && (
-                  <div style={styles.section}>
-                    <div style={styles.sectionTitle}>🔴 Threats</div>
-                    <ul style={styles.list}>
+                  <div className="bg-orange-500/5 rounded-xl p-6 border border-orange-500/10">
+                    <h4 className="text-orange-500 font-bold uppercase tracking-wider mb-6 flex items-center gap-2">
+                      <AlertCircle className="w-5 h-5" /> Threats
+                    </h4>
+                    <ul className="space-y-3">
                       {analysis.threats.map((item, i) => (
-                        <li key={i} style={styles.listItem}>{item}</li>
+                        <li key={i} className="flex gap-3 text-zinc-300 text-sm">
+                          <span className="w-1.5 h-1.5 rounded-full bg-orange-500 mt-2 shrink-0" />
+                          {item}
+                        </li>
                       ))}
                     </ul>
                   </div>
@@ -347,11 +299,13 @@ function Analysis() {
           )}
 
           {!analysis && !score && !loading && (
-            <div style={styles.empty}>
-              <p>No analysis available yet. Click "Run Analysis" or "Calculate Score" to get started.</p>
+            <div className="bg-[#0A0A0A]/80 backdrop-blur-xl border border-dashed border-zinc-800 rounded-2xl p-16 text-center">
+              <Target className="w-12 h-12 text-zinc-600 mx-auto mb-4" />
+              <p className="text-zinc-400 text-lg">No analysis data found.</p>
+              <p className="text-zinc-600 text-sm mt-2">Initiate "Deep Analysis" or "Calculate Score" to begin.</p>
             </div>
           )}
-        </>
+        </div>
       )}
     </div>
   );

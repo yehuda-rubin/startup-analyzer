@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Rocket, Briefcase, Mail, Lock, CheckCircle2, ArrowRight, Loader2 } from 'lucide-react';
+import { Rocket, Briefcase, Mail, Lock, CheckCircle2, ArrowRight, Loader2, Zap } from 'lucide-react';
 
 export default function SignUp() {
   const [role, setRole] = useState(null); // 'entrepreneur' | 'investor'
@@ -40,26 +40,26 @@ export default function SignUp() {
   const isInvestor = role === 'investor';
 
   return (
-    // Main Container: Forces full height and true centering
-    <div className="min-h-screen w-full flex items-center justify-center p-4">
+    // Primary Background: Deep Void (Black)
+    <div className="min-h-screen w-full flex items-center justify-center p-4 bg-black relative overflow-hidden">
 
-      {/* Background Ambience */}
-      <div className="fixed top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
-        <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-indigo-600/10 rounded-full blur-[120px]" />
-        <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-emerald-600/10 rounded-full blur-[120px]" />
+      {/* Electric Flow Background Ambience */}
+      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
+        <div className="absolute top-[-10%] left-[-10%] w-[600px] h-[600px] bg-[#00FF41]/5 rounded-full blur-[120px] mix-blend-screen" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[600px] h-[600px] bg-[#00E5FF]/5 rounded-full blur-[120px] mix-blend-screen" />
       </div>
 
-      {/* Content Card - Relative to sit above background */}
-      <div className="relative z-10 w-full max-w-md bg-[#1e293b] rounded-2xl border border-slate-700 shadow-2xl overflow-hidden">
+      {/* Glass Component Card */}
+      <div className="relative z-10 w-full max-w-md bg-white/5 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl transition-all duration-300 hover:border-[#00FF41]/30 hover:shadow-[0_0_30px_rgba(0,255,65,0.1)] group/card">
         <div className="p-8">
           <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-white mb-2">Create Account</h2>
-            <p className="text-slate-400">Join the innovative ecosystem</p>
+            <h2 className="text-3xl font-bold text-white mb-2 tracking-tight">Access Grant</h2>
+            <p className="text-[#E0E0E0]">Initialize new user protocol</p>
           </div>
 
           {error && (
-            <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-4 rounded-xl mb-6 text-sm flex items-center gap-2">
-              <div className="w-1.5 h-1.5 rounded-full bg-red-500" />
+            <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-4 rounded-lg mb-6 text-sm flex items-center gap-2">
+              <div className="w-1.5 h-1.5 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]" />
               {error}
             </div>
           )}
@@ -71,39 +71,50 @@ export default function SignUp() {
               <button
                 type="button"
                 onClick={() => setRole('entrepreneur')}
-                className={`p-4 rounded-xl border transition-all duration-300 flex flex-col items-center justify-center text-center gap-3
+                className={`p-4 rounded-xl border transition-all duration-300 flex flex-col items-center justify-center text-center gap-3 group relative overflow-hidden
                   ${isEntrepreneur
-                    ? 'bg-indigo-600/20 border-indigo-500 text-white shadow-lg shadow-indigo-500/10'
-                    : 'bg-slate-800/50 border-slate-700 text-slate-400 hover:bg-slate-800 hover:text-white'
+                    ? 'bg-[#00FF41]/10 border-[#00FF41] text-white shadow-[0_0_20px_rgba(0,255,65,0.2)]'
+                    : 'bg-[#0A0A0A] border-zinc-800 text-[#E0E0E0] hover:border-[#00FF41]/50 hover:bg-[#00FF41]/5'
                   }`}
               >
-                <Rocket size={24} className={isEntrepreneur ? 'text-indigo-400' : 'text-slate-500'} />
-                <span className="text-sm font-semibold">Founder</span>
+                <div className={`p-2 rounded-full transition-colors duration-300 ${isEntrepreneur ? 'bg-[#00FF41]/20' : 'bg-white/5'}`}>
+                  <Zap size={20} className={isEntrepreneur ? 'text-[#00FF41]' : 'text-zinc-500 group-hover:text-[#00FF41]'} />
+                </div>
+                <span className="text-xs font-bold uppercase tracking-wider">Founder</span>
+                {isEntrepreneur && <div className="absolute inset-0 border-2 border-[#00FF41] rounded-xl animate-pulse opacity-20" />}
               </button>
 
               <button
                 type="button"
                 onClick={() => setRole('investor')}
-                className={`p-4 rounded-xl border transition-all duration-300 flex flex-col items-center justify-center text-center gap-3
+                className={`p-4 rounded-xl border transition-all duration-300 flex flex-col items-center justify-center text-center gap-3 group relative overflow-hidden
                   ${isInvestor
-                    ? 'bg-emerald-600/20 border-emerald-500 text-white shadow-lg shadow-emerald-500/10'
-                    : 'bg-slate-800/50 border-slate-700 text-slate-400 hover:bg-slate-800 hover:text-white'
+                    ? 'bg-[#00E5FF]/10 border-[#00E5FF] text-white shadow-[0_0_20px_rgba(0,229,255,0.2)]'
+                    : 'bg-[#0A0A0A] border-zinc-800 text-[#E0E0E0] hover:border-[#00E5FF]/50 hover:bg-[#00E5FF]/5'
                   }`}
               >
-                <Briefcase size={24} className={isInvestor ? 'text-emerald-400' : 'text-slate-500'} />
-                <span className="text-sm font-semibold">Investor</span>
+                <div className={`p-2 rounded-full transition-colors duration-300 ${isInvestor ? 'bg-[#00E5FF]/20' : 'bg-white/5'}`}>
+                  <Briefcase size={20} className={isInvestor ? 'text-[#00E5FF]' : 'text-zinc-500 group-hover:text-[#00E5FF]'} />
+                </div>
+                <span className="text-xs font-bold uppercase tracking-wider">Investor</span>
+                {isInvestor && <div className="absolute inset-0 border-2 border-[#00E5FF] rounded-xl animate-pulse opacity-20" />}
               </button>
             </div>
 
             {/* Inputs */}
             <div className="space-y-4">
               <div>
+                <label className="block text-[#E0E0E0] text-xs font-semibold mb-2 uppercase tracking-wider pl-1">
+                  Identity
+                </label>
                 <div className="relative group">
-                  <Mail className="absolute left-4 top-3.5 text-slate-500 h-5 w-5 group-focus-within:text-indigo-400 transition-colors" />
+                  <Mail className="absolute left-4 top-3.5 text-zinc-500 h-5 w-5 group-focus-within:text-[#00FF41] transition-colors duration-300" />
                   <input
                     type="email"
                     required
-                    className="w-full bg-[#0f172a] border border-slate-700 text-white rounded-xl pl-12 pr-4 py-3 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all placeholder:text-slate-600"
+                    className="w-full bg-[#0A0A0A] border border-zinc-800 text-white rounded-lg pl-12 pr-4 py-3 
+                      focus:outline-none focus:border-[#00FF41] focus:ring-1 focus:ring-[#00FF41] focus:shadow-[0_0_15px_rgba(0,255,65,0.15)]
+                      transition-all duration-300 placeholder:text-zinc-600"
                     placeholder="name@company.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
@@ -112,27 +123,41 @@ export default function SignUp() {
               </div>
 
               <div className="grid grid-cols-2 gap-4">
-                <div className="relative group">
-                  <Lock className="absolute left-4 top-3.5 text-slate-500 h-5 w-5 group-focus-within:text-indigo-400 transition-colors" />
-                  <input
-                    type="password"
-                    required
-                    className="w-full bg-[#0f172a] border border-slate-700 text-white rounded-xl pl-12 pr-4 py-3 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all placeholder:text-slate-600"
-                    placeholder="Password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                  />
+                <div>
+                  <label className="block text-[#E0E0E0] text-xs font-semibold mb-2 uppercase tracking-wider pl-1">
+                    Key
+                  </label>
+                  <div className="relative group">
+                    <Lock className="absolute left-4 top-3.5 text-zinc-500 h-5 w-5 group-focus-within:text-[#00FF41] transition-colors duration-300" />
+                    <input
+                      type="password"
+                      required
+                      className="w-full bg-[#0A0A0A] border border-zinc-800 text-white rounded-lg pl-12 pr-4 py-3 
+                        focus:outline-none focus:border-[#00FF41] focus:ring-1 focus:ring-[#00FF41] focus:shadow-[0_0_15px_rgba(0,255,65,0.15)]
+                        transition-all duration-300 placeholder:text-zinc-600"
+                      placeholder="Password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                    />
+                  </div>
                 </div>
-                <div className="relative group">
-                  <Lock className="absolute left-4 top-3.5 text-slate-500 h-5 w-5 group-focus-within:text-indigo-400 transition-colors" />
-                  <input
-                    type="password"
-                    required
-                    className="w-full bg-[#0f172a] border border-slate-700 text-white rounded-xl pl-12 pr-4 py-3 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all placeholder:text-slate-600"
-                    placeholder="Confirm"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                  />
+                <div>
+                  <label className="block text-[#E0E0E0] text-xs font-semibold mb-2 uppercase tracking-wider pl-1">
+                    Verify
+                  </label>
+                  <div className="relative group">
+                    <Lock className="absolute left-4 top-3.5 text-zinc-500 h-5 w-5 group-focus-within:text-[#00FF41] transition-colors duration-300" />
+                    <input
+                      type="password"
+                      required
+                      className="w-full bg-[#0A0A0A] border border-zinc-800 text-white rounded-lg pl-12 pr-4 py-3 
+                        focus:outline-none focus:border-[#00FF41] focus:ring-1 focus:ring-[#00FF41] focus:shadow-[0_0_15px_rgba(0,255,65,0.15)]
+                        transition-all duration-300 placeholder:text-zinc-600"
+                      placeholder="Confirm"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                    />
+                  </div>
                 </div>
               </div>
             </div>
@@ -140,25 +165,27 @@ export default function SignUp() {
             <button
               disabled={loading}
               type="submit"
-              className={`w-full font-bold py-3.5 rounded-xl transition-all shadow-lg flex items-center justify-center gap-2
+              className={`w-full font-bold py-3.5 rounded-lg transition-all duration-300 shadow-lg flex items-center justify-center gap-2 uppercase tracking-wide text-sm
+                hover:scale-[1.02] active:scale-[0.98]
                 ${isInvestor
-                  ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-900/20'
-                  : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-900/20'
+                  ? 'bg-gradient-to-r from-[#00E5FF] to-[#0055FF] text-white shadow-[0_0_20px_rgba(0,229,255,0.2)] hover:shadow-[0_0_30px_rgba(0,229,255,0.4)]'
+                  : 'bg-gradient-to-r from-[#00FF41] to-[#00E5FF] text-black shadow-[0_0_20px_rgba(0,255,65,0.2)] hover:shadow-[0_0_30px_rgba(0,255,65,0.4)]'
                 }`}
             >
               {loading ? (
                 <Loader2 className="animate-spin h-5 w-5" />
               ) : (
                 <>
-                  Create Account <ArrowRight className="h-5 w-5" />
+                  Initialize Protocol <ArrowRight className="h-5 w-5" />
                 </>
               )}
             </button>
 
-            <div className="text-center text-sm text-slate-500">
-              Already have an account?{' '}
-              <Link to="/login" className="text-indigo-400 hover:text-indigo-300 font-medium transition-colors">
-                Sign in
+            <div className="text-center text-sm text-[#E0E0E0]">
+              Already linked?{' '}
+              <Link to="/login" className="group inline-flex items-center gap-1 hover:text-[#00FF41] transition-colors duration-300 font-medium">
+                <span>Access System</span>
+                <ArrowRight className="w-3 h-3 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300 text-[#00FF41]" />
               </Link>
             </div>
           </form>

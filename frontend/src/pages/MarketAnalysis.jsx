@@ -2,113 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { listStartups, analyzeMarket, getMarketAnalyses } from '../services/api';
 import MarketChart from '../components/MarketChart';
-
-const styles = {
-  container: {
-    padding: '20px',
-  },
-  header: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: '30px',
-  },
-  title: {
-    fontSize: '32px',
-    fontWeight: 'bold',
-    color: '#f8fafc',
-  },
-  select: {
-    padding: '10px 15px',
-    border: '1px solid #ddd',
-    borderRadius: '4px',
-    fontSize: '16px',
-    minWidth: '250px',
-  },
-  button: {
-    padding: '12px 24px',
-    backgroundColor: '#3498db',
-    color: '#fff',
-    border: 'none',
-    borderRadius: '4px',
-    fontSize: '14px',
-    fontWeight: '600',
-    cursor: 'pointer',
-    marginBottom: '20px',
-  },
-  buttonDisabled: {
-    backgroundColor: '#95a5a6',
-    cursor: 'not-allowed',
-  },
-  card: {
-    backgroundColor: '#fff',
-    borderRadius: '8px',
-    padding: '25px',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-    marginBottom: '20px',
-  },
-  cardTitle: {
-    fontSize: '20px',
-    fontWeight: 'bold',
-    marginBottom: '15px',
-    color: '#2c3e50',
-  },
-  section: {
-    marginBottom: '20px',
-  },
-  sectionTitle: {
-    fontSize: '16px',
-    fontWeight: 'bold',
-    marginBottom: '10px',
-    color: '#34495e',
-  },
-  text: {
-    lineHeight: '1.6',
-    color: '#555',
-  },
-  grid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-    gap: '15px',
-  },
-  trendCard: {
-    padding: '15px',
-    backgroundColor: '#f8f9fa',
-    borderRadius: '6px',
-    borderLeft: '4px solid #3498db',
-  },
-  trendName: {
-    fontWeight: '600',
-    marginBottom: '5px',
-    color: '#2c3e50',
-  },
-  trendDesc: {
-    fontSize: '14px',
-    color: '#555',
-    marginBottom: '5px',
-  },
-  trendImpact: {
-    fontSize: '13px',
-    fontWeight: '600',
-  },
-  competitorCard: {
-    padding: '15px',
-    backgroundColor: '#fff3cd',
-    borderRadius: '6px',
-    borderLeft: '4px solid #f39c12',
-  },
-  loading: {
-    textAlign: 'center',
-    padding: '40px',
-    fontSize: '18px',
-    color: '#95a5a6',
-  },
-  empty: {
-    textAlign: 'center',
-    padding: '40px',
-    color: '#7f8c8d',
-  },
-};
+import { TrendingUp, Users, Target, Activity, AlertCircle, Loader2 } from 'lucide-react';
 
 function MarketAnalysis() {
   const { startupId: urlStartupId } = useParams();
@@ -174,94 +68,148 @@ function MarketAnalysis() {
   };
 
   const getImpactColor = (impact) => {
-    if (impact === 'positive') return '#27ae60';
-    if (impact === 'negative') return '#e74c3c';
-    return '#95a5a6';
+    if (impact === 'positive') return 'text-[#00FF41] border-[#00FF41]/30 bg-[#00FF41]/10';
+    if (impact === 'negative') return 'text-red-500 border-red-500/30 bg-red-500/10';
+    return 'text-zinc-400 border-zinc-700 bg-zinc-800/50';
   };
 
   return (
-    <div style={styles.container}>
-      <div style={styles.header}>
-        <h1 style={styles.title}>Market Analysis (TAM/SAM/SOM)</h1>
-        <select
-          value={selectedStartupId}
-          onChange={(e) => setSelectedStartupId(e.target.value)}
-          style={styles.select}
-        >
-          <option value="">Select a startup...</option>
-          {startups.map(startup => (
-            <option key={startup.id} value={startup.id}>
-              {startup.name}
-            </option>
-          ))}
-        </select>
+    <div className="max-w-7xl mx-auto pb-20">
+      <div className="flex justify-between items-center mb-12">
+        <h1 className="text-4xl font-bold text-white tracking-tight flex items-center gap-4">
+          Market Analysis <span className="text-zinc-600 text-2xl font-normal">|</span> <span className="text-[#00E5FF] font-mono text-2xl">TAM/SAM/SOM</span>
+        </h1>
+        <div className="relative group">
+          <select
+            value={selectedStartupId}
+            onChange={(e) => setSelectedStartupId(e.target.value)}
+            className="appearance-none bg-[#0A0A0A] border border-zinc-800 text-white py-3 pl-4 pr-12 rounded-lg min-w-[250px] focus:outline-none focus:border-[#00E5FF] focus:shadow-[0_0_15px_rgba(0,229,255,0.15)] transition-all"
+          >
+            <option value="">Select a startup...</option>
+            {startups.map(startup => (
+              <option key={startup.id} value={startup.id}>
+                {startup.name}
+              </option>
+            ))}
+          </select>
+          <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-500 group-hover:text-[#00E5FF] transition-colors">
+            ▼
+          </div>
+        </div>
       </div>
 
       {selectedStartupId && (
-        <button
-          onClick={handleAnalyze}
-          disabled={analyzing}
-          style={{
-            ...styles.button,
-            ...(analyzing ? styles.buttonDisabled : {})
-          }}
-        >
-          {analyzing ? 'Analyzing Market...' : '📊 Run Market Analysis'}
-        </button>
+        <div className="mb-8">
+          <button
+            onClick={handleAnalyze}
+            disabled={analyzing}
+            className={`px-8 py-3 rounded-lg font-bold uppercase tracking-wide transition-all duration-300 shadow-lg flex items-center gap-2
+              ${analyzing
+                ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed'
+                : 'bg-gradient-to-r from-[#00E5FF] to-[#0055FF] text-white hover:scale-[1.02] shadow-[0_0_20px_rgba(0,229,255,0.2)] hover:shadow-[0_0_30px_rgba(0,229,255,0.4)]'
+              }`}
+          >
+            {analyzing ? (
+              <>
+                <Loader2 className="animate-spin h-5 w-5" /> Processing Market Data
+              </>
+            ) : (
+              <>
+                <TrendingUp className="h-5 w-5" /> Run Market Analysis
+              </>
+            )}
+          </button>
+        </div>
       )}
 
-      {loading && <div style={styles.loading}>Loading...</div>}
+      {loading && (
+        <div className="flex flex-col items-center justify-center min-h-[40vh] text-zinc-500 animate-pulse">
+          <Activity className="w-12 h-12 mb-4 opacity-50 text-[#00E5FF]" />
+          <p className="text-lg tracking-wider font-mono">Retrieving Market Vector Data...</p>
+        </div>
+      )}
 
       {!loading && marketData && (
-        <>
-          <MarketChart marketData={marketData} />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
 
-          <div style={styles.card}>
-            <h3 style={styles.cardTitle}>Market Insights</h3>
+          {/* Main Chart Column */}
+          <div className="lg:col-span-3">
+            <MarketChart marketData={marketData} />
+          </div>
 
-            <div style={styles.section}>
-              <div style={styles.sectionTitle}>Growth Rate</div>
-              <p style={styles.text}>
-                <strong>{marketData.growth_rate}%</strong> annual growth expected
-              </p>
-            </div>
+          <div className="lg:col-span-2 space-y-8">
+            {/* Market Insights */}
+            <div className="bg-[#0A0A0A]/80 backdrop-blur-xl border border-white/5 rounded-xl p-8 relative overflow-hidden group">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-[#00E5FF]/5 rounded-full blur-[80px] pointer-events-none" />
+              <h3 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
+                <Target className="text-[#00E5FF]" /> Market Evaluation
+              </h3>
 
-            <div style={styles.section}>
-              <div style={styles.sectionTitle}>Market Size Reasoning</div>
-              <p style={styles.text}>{marketData.market_size_reasoning}</p>
-            </div>
-
-            {marketData.market_trends && marketData.market_trends.length > 0 && (
-              <div style={styles.section}>
-                <div style={styles.sectionTitle}>Market Trends</div>
-                <div style={styles.grid}>
-                  {marketData.market_trends.map((trend, index) => (
-                    <div key={index} style={styles.trendCard}>
-                      <div style={styles.trendName}>{trend.trend}</div>
-                      <div style={styles.trendDesc}>{trend.description}</div>
-                      <div style={{
-                        ...styles.trendImpact,
-                        color: getImpactColor(trend.impact)
-                      }}>
-                        Impact: {trend.impact}
-                      </div>
-                    </div>
-                  ))}
+              <div className="mb-8">
+                <h4 className="text-[#E0E0E0] text-sm font-bold uppercase tracking-wider mb-2">Projected Growth</h4>
+                <div className="text-5xl font-bold text-[#00FF41] mb-2 drop-shadow-[0_0_10px_rgba(0,255,65,0.3)]">
+                  +{marketData.growth_rate}%
                 </div>
+                <p className="text-zinc-500 text-sm">Annual Compound Growth Rate (CAGR)</p>
+              </div>
+
+              <div className="mb-8">
+                <h4 className="text-[#E0E0E0] text-sm font-bold uppercase tracking-wider mb-2">Growth Logic</h4>
+                <p className="text-zinc-300 leading-relaxed border-l-2 border-[#00E5FF]/30 pl-4">
+                  {marketData.market_size_reasoning}
+                </p>
+              </div>
+
+              {marketData.market_trends && marketData.market_trends.length > 0 && (
+                <div>
+                  <h4 className="text-[#E0E0E0] text-sm font-bold uppercase tracking-wider mb-4">Core Trends</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {marketData.market_trends.map((trend, index) => (
+                      <div key={index} className={`p-4 rounded-lg border ${getImpactColor(trend.impact)}`}>
+                        <div className="font-bold mb-1">{trend.trend}</div>
+                        <p className="text-xs opacity-80 mb-2">{trend.description}</p>
+                        <div className="text-[10px] font-bold uppercase tracking-wider opacity-90">
+                          Impact: {trend.impact}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Competitive Advantages */}
+            {marketData.competitive_advantages && marketData.competitive_advantages.length > 0 && (
+              <div className="bg-[#0A0A0A]/80 backdrop-blur-xl border border-white/5 rounded-xl p-8">
+                <h3 className="text-xl font-bold text-white mb-6">Competitive Edge</h3>
+                <ul className="space-y-3">
+                  {marketData.competitive_advantages.map((advantage, index) => (
+                    <li key={index} className="flex items-start gap-3 text-zinc-300">
+                      <CheckmarkIcon />
+                      <span>{advantage}</span>
+                    </li>
+                  ))}
+                </ul>
               </div>
             )}
+          </div>
 
+          <div className="space-y-8">
+            {/* Competitors */}
             {marketData.competitors && marketData.competitors.length > 0 && (
-              <div style={styles.section}>
-                <div style={styles.sectionTitle}>Key Competitors</div>
-                <div style={styles.grid}>
+              <div className="bg-[#0A0A0A]/80 backdrop-blur-xl border border-white/5 rounded-xl p-6">
+                <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
+                  <Users className="text-[#f39c12]" /> Competition
+                </h3>
+                <div className="space-y-4">
                   {marketData.competitors.map((competitor, index) => (
-                    <div key={index} style={styles.competitorCard}>
-                      <div style={styles.trendName}>{competitor.name}</div>
-                      <div style={styles.trendDesc}>{competitor.description}</div>
+                    <div key={index} className="p-4 bg-white/5 border border-white/5 rounded-lg">
+                      <div className="font-bold text-white mb-1">{competitor.name}</div>
+                      <div className="text-xs text-zinc-400 mb-3">{competitor.description}</div>
                       {competitor.strength && (
-                        <div style={{ fontSize: '13px', marginTop: '5px', color: '#666' }}>
-                          <strong>Their Strength:</strong> {competitor.strength}
+                        <div className="text-xs border-t border-white/10 pt-2">
+                          <span className="text-[#f39c12] font-bold">Strength: </span>
+                          <span className="text-zinc-300">{competitor.strength}</span>
                         </div>
                       )}
                     </div>
@@ -270,36 +218,38 @@ function MarketAnalysis() {
               </div>
             )}
 
-            {marketData.competitive_advantages && marketData.competitive_advantages.length > 0 && (
-              <div style={styles.section}>
-                <div style={styles.sectionTitle}>Competitive Advantages</div>
-                <ul style={{ paddingLeft: '20px' }}>
-                  {marketData.competitive_advantages.map((advantage, index) => (
-                    <li key={index} style={{ marginBottom: '8px', color: '#555' }}>
-                      {advantage}
-                    </li>
-                  ))}
-                </ul>
+            <div className="bg-[#0A0A0A]/80 backdrop-blur-xl border border-white/5 rounded-xl p-6 text-center">
+              <h4 className="text-zinc-500 text-xs font-bold uppercase tracking-wider mb-2">Analysis Confidence</h4>
+              <div className="text-3xl font-bold text-white">
+                {(marketData.confidence_score * 100).toFixed(0)}%
               </div>
-            )}
-
-            <div style={styles.section}>
-              <div style={styles.sectionTitle}>Analysis Confidence</div>
-              <p style={styles.text}>
-                {(marketData.confidence_score * 100).toFixed(0)}% confidence in this analysis
-              </p>
+              <div className="w-full bg-zinc-800 h-1.5 rounded-full mt-3 overflow-hidden">
+                <div
+                  className="bg-[#00E5FF] h-full rounded-full"
+                  style={{ width: `${marketData.confidence_score * 100}%` }}
+                />
+              </div>
             </div>
           </div>
-        </>
+
+        </div>
       )}
 
       {!loading && !marketData && selectedStartupId && (
-        <div style={styles.empty}>
-          <p>No market analysis available yet. Click "Run Market Analysis" to get started.</p>
+        <div className="bg-[#0A0A0A]/80 backdrop-blur-xl border border-dashed border-zinc-800 rounded-2xl p-16 text-center">
+          <AlertCircle className="w-12 h-12 text-zinc-600 mx-auto mb-4" />
+          <p className="text-zinc-400 text-lg">No market analysis vector data found.</p>
+          <p className="text-zinc-600 text-sm mt-2">Initiate analysis sequence to generate insights.</p>
         </div>
       )}
     </div>
   );
 }
+
+const CheckmarkIcon = () => (
+  <svg className="w-5 h-5 text-[#00FF41] mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+  </svg>
+);
 
 export default MarketAnalysis;

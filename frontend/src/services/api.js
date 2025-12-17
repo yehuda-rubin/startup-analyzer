@@ -104,4 +104,15 @@ export const deleteStartup = async (startupId) => {
   return response.data;
 };
 
+// Users
+export const syncUser = async (userData) => {
+  const response = await api.post('/users/sync', userData);
+  return response.data;
+};
+
+export const getUser = async (firebaseUid) => {
+  const response = await api.get(`/users/me/${firebaseUid}`);
+  return response.data;
+};
+
 export default api;

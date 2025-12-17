@@ -6,6 +6,7 @@ import {
   signOut,
   onAuthStateChanged
 } from 'firebase/auth';
+import { syncUser, getUser } from '../services/api';
 
 const AuthContext = createContext();
 
@@ -18,11 +19,24 @@ export function AuthProvider({ children }) {
   const [userRole, setUserRole] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  function signup(email, password, role) {
-    // "Simulate saving it" -> Storing role in localStorage for persistence across reloads for this MVP
-    localStorage.setItem('tempUserRole', role);
-    setUserRole(role);
-    return createUserWithEmailAndPassword(auth, email, password);
+  async function signup(email, password, role) {
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    const user = userCredential.user;
+
+    // Sync with backend to store role
+    try {
+      await syncUser({
+        email: user.email,
+        firebase_uid: user.uid,
+        role: role
+      });
+      setUserRole(role);
+    } catch (error) {
+      console.error("Failed to sync user role:", error);
+      // Fallback or error handling
+    }
+
+    return userCredential;
   }
 
   function login(email, password) {
@@ -30,20 +44,23 @@ export function AuthProvider({ children }) {
   }
 
   function logout() {
-    localStorage.removeItem('tempUserRole');
     setUserRole(null);
     return signOut(auth);
   }
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setCurrentUser(user);
 
-      // Attempt to recover role from basic storage if user exists
       if (user) {
-        const storedRole = localStorage.getItem('tempUserRole');
-        if (storedRole) {
-          setUserRole(storedRole);
+        try {
+          // Fetch user role from backend
+          const dbUser = await getUser(user.uid);
+          if (dbUser && dbUser.role) {
+            setUserRole(dbUser.role);
+          }
+        } catch (error) {
+          console.error("Failed to fetch user role:", error);
         }
       } else {
         setUserRole(null);

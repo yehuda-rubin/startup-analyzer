@@ -3,75 +3,6 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Zap, Briefcase, LogOut } from 'lucide-react';
 
-const styles = {
-  nav: {
-    backgroundColor: 'rgba(255, 255, 255, 0.95)', // White/95
-    backdropFilter: 'blur(12px)',
-    borderBottom: '1px solid #e2e8f0', // Slate-200
-    padding: '0 24px',
-    height: '64px',
-    position: 'fixed',
-    top: 0,
-    left: 0,
-    right: 0,
-    zIndex: 50,
-  },
-  container: {
-    maxWidth: '1280px', // max-w-7xl
-    margin: '0 auto',
-    height: '100%',
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  brandGroup: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '12px',
-  },
-  brand: {
-    color: '#0f172a', // Slate-900 (Dark for light bg)
-    fontSize: '20px',
-    fontWeight: '700',
-    textDecoration: 'none',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px',
-  },
-  links: {
-    display: 'flex',
-    gap: '4px',
-    listStyle: 'none',
-    margin: 0,
-    padding: 0,
-    alignItems: 'center',
-  },
-  link: {
-    color: '#475569', // Slate-600
-    textDecoration: 'none',
-    padding: '8px 16px',
-    borderRadius: '8px',
-    fontSize: '14px',
-    fontWeight: '500',
-    transition: 'all 0.2s',
-  },
-  linkActive: {
-    backgroundColor: '#f1f5f9', // Slate-100
-    color: '#3b82f6', // Electric Blue
-  },
-  roleLabel: {
-    fontSize: '11px',
-    fontWeight: '700',
-    textTransform: 'uppercase',
-    letterSpacing: '0.05em',
-    padding: '2px 8px',
-    borderRadius: '4px',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '4px',
-  }
-};
-
 function Navbar() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -90,59 +21,64 @@ function Navbar() {
 
   if (!currentUser) return null;
 
-  // Role Styling
+  // Role Styling Logic
   const isEntrepreneur = userRole === 'entrepreneur';
-  const roleColor = isEntrepreneur ? '#818cf8' : '#34d399'; // Indigo-400 : Emerald-400
-  const roleBg = isEntrepreneur ? 'rgba(99, 102, 241, 0.1)' : 'rgba(52, 211, 153, 0.1)';
-  const roleBorder = isEntrepreneur ? 'rgba(99, 102, 241, 0.2)' : 'rgba(52, 211, 153, 0.2)';
+
+  const roleStyles = isEntrepreneur
+    ? 'text-[#00FF41] bg-[#00FF41]/10 border-[#00FF41]/20 shadow-[0_0_10px_rgba(0,255,65,0.1)]'
+    : 'text-[#00E5FF] bg-[#00E5FF]/10 border-[#00E5FF]/20 shadow-[0_0_10px_rgba(0,229,255,0.1)]';
+
+  const roleIcon = isEntrepreneur
+    ? <Zap size={14} className="text-[#00FF41]" />
+    : <Briefcase size={14} className="text-[#00E5FF]" />;
 
   return (
-    <nav style={styles.nav}>
-      <div style={styles.container}>
+    <nav className="fixed top-0 left-0 right-0 h-20 z-50 bg-white/5 backdrop-blur-xl border-b border-white/10 transition-all duration-300">
+      <div className="max-w-7xl mx-auto px-6 h-full flex justify-between items-center">
 
         {/* Brand + Role Label */}
-        <div style={styles.brandGroup}>
-          <Link to="/" style={styles.brand}>
-            <span>🚀</span> Roots
+        <div className="flex items-center gap-4">
+          <Link to="/" className="flex items-center gap-2 text-2xl font-bold tracking-tight group">
+            <span className="text-3xl filter drop-shadow-[0_0_8px_rgba(255,255,255,0.3)] group-hover:drop-shadow-[0_0_12px_rgba(0,255,65,0.5)] transition-all">🚀</span>
+            <span className="text-white group-hover:text-[#00FF41] transition-colors duration-300">Roots</span>
           </Link>
 
           {userRole && (
-            <span style={{
-              ...styles.roleLabel,
-              color: roleColor,
-              backgroundColor: roleBg,
-              border: `1px solid ${roleBorder}`
-            }}>
-              {isEntrepreneur ? <Zap size={10} /> : <Briefcase size={10} />}
+            <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded border flex items-center gap-1.5 transition-all duration-300 ${roleStyles}`}>
+              {roleIcon}
               {userRole}
             </span>
           )}
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
-          <ul style={styles.links}>
+        <div className="flex items-center gap-8">
+          <ul className="flex items-center gap-1 list-none p-0 m-0">
             {['Dashboard', 'Upload', 'Analysis', 'Comparison', 'Market', 'Reports'].map((item) => {
               const path = `/${item.toLowerCase()}`;
+              const active = isActive(path);
+
               return (
                 <li key={item}>
                   <Link
                     to={path}
-                    style={{
-                      ...styles.link,
-                      ...(isActive(path) ? styles.linkActive : {})
-                    }}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 relative overflow-hidden group
+                      ${active
+                        ? 'text-[#00FF41] bg-[#00FF41]/10 shadow-[0_0_15px_rgba(0,255,65,0.15)]'
+                        : 'text-zinc-400 hover:text-white hover:bg-white/5'
+                      }`}
                   >
-                    {item}
+                    <span className="relative z-10">{item}</span>
+                    {active && <div className="absolute inset-0 border border-[#00FF41]/20 rounded-lg pointer-events-none" />}
                   </Link>
                 </li>
               );
             })}
           </ul>
 
-          <div className="flex items-center gap-4 pl-4 border-l border-slate-200 h-8">
+          <div className="flex items-center gap-4 pl-6 border-l border-white/10 h-8">
             {/* User Identity */}
-            <div className="flex items-center gap-2 text-slate-900 text-xs hidden md:flex">
-              <span className="max-w-[100px] truncate font-medium" title={currentUser.email}>
+            <div className="flex items-center gap-2 text-zinc-400 text-xs hidden md:flex font-mono">
+              <span className="max-w-[120px] truncate" title={currentUser.email}>
                 {currentUser.email}
               </span>
             </div>
@@ -150,10 +86,10 @@ function Navbar() {
             {/* Logout Button */}
             <button
               onClick={handleLogout}
-              className="text-slate-500 hover:text-red-600 transition-colors p-1.5 rounded-lg hover:bg-red-50"
+              className="text-zinc-500 hover:text-red-500 transition-colors p-2 rounded-lg hover:bg-red-500/10 group"
               title="Sign Out"
             >
-              <LogOut className="h-4 w-4" />
+              <LogOut className="h-4 w-4 group-hover:drop-shadow-[0_0_8px_rgba(239,68,68,0.5)] transition-all" />
             </button>
           </div>
         </div>

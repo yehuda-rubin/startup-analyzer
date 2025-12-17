@@ -1,215 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { listStartups, generateReport } from '../services/api';
 import ScoreAnalysis from '../components/ScoreAnalysis';
-
-const styles = {
-  container: {
-    padding: '20px',
-    maxWidth: '1400px',
-    margin: '0 auto',
-  },
-  header: {
-    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-    borderRadius: '12px',
-    padding: '40px',
-    marginBottom: '30px',
-    color: 'white',
-    boxShadow: '0 10px 30px rgba(102, 126, 234, 0.3)',
-  },
-  title: {
-    fontSize: '36px',
-    fontWeight: '800',
-    margin: '0 0 10px 0',
-  },
-  subtitle: {
-    fontSize: '16px',
-    opacity: '0.9',
-    margin: '0',
-  },
-  selectionSection: {
-    backgroundColor: '#fff',
-    borderRadius: '12px',
-    padding: '30px',
-    boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
-    marginBottom: '30px',
-  },
-  sectionTitle: {
-    fontSize: '20px',
-    fontWeight: '700',
-    marginBottom: '20px',
-    color: '#2c3e50',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '10px',
-  },
-  checkboxGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-    gap: '12px',
-    marginBottom: '25px',
-  },
-  checkboxLabel: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '12px',
-    padding: '14px 16px',
-    backgroundColor: '#f8f9fa',
-    borderRadius: '8px',
-    cursor: 'pointer',
-    transition: 'all 0.3s',
-    border: '2px solid transparent',
-  },
-  checkboxLabelSelected: {
-    backgroundColor: '#e3f2fd',
-    borderColor: '#3498db',
-  },
-  checkbox: {
-    width: '20px',
-    height: '20px',
-    cursor: 'pointer',
-    accentColor: '#3498db',
-  },
-  startupName: {
-    fontWeight: '600',
-    color: '#2c3e50',
-  },
-  buttonContainer: {
-    display: 'flex',
-    gap: '12px',
-    alignItems: 'center',
-  },
-  button: {
-    padding: '14px 32px',
-    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-    color: '#fff',
-    border: 'none',
-    borderRadius: '8px',
-    fontSize: '16px',
-    fontWeight: '700',
-    cursor: 'pointer',
-    transition: 'all 0.3s',
-    boxShadow: '0 4px 15px rgba(102, 126, 234, 0.4)',
-  },
-  buttonDisabled: {
-    background: '#95a5a6',
-    cursor: 'not-allowed',
-    boxShadow: 'none',
-  },
-  selectedCount: {
-    fontSize: '14px',
-    color: '#7f8c8d',
-    fontWeight: '600',
-  },
-  report: {
-    backgroundColor: '#fff',
-    borderRadius: '12px',
-    padding: '40px',
-    boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
-    marginBottom: '30px',
-    pageBreakAfter: 'always',
-  },
-  reportHeader: {
-    borderBottom: '3px solid #667eea',
-    paddingBottom: '20px',
-    marginBottom: '30px',
-    background: 'linear-gradient(135deg, #667eea15 0%, #764ba215 100%)',
-    padding: '25px',
-    borderRadius: '8px',
-    marginLeft: '-40px',
-    marginRight: '-40px',
-    marginTop: '-40px',
-  },
-  reportTitle: {
-    fontSize: '32px',
-    fontWeight: '800',
-    color: '#2c3e50',
-    marginBottom: '8px',
-  },
-  reportSubtitle: {
-    fontSize: '14px',
-    color: '#7f8c8d',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px',
-  },
-  scoreCard: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-    gap: '15px',
-    marginBottom: '30px',
-    padding: '20px',
-    backgroundColor: '#f8f9fa',
-    borderRadius: '8px',
-  },
-  scoreItem: {
-    textAlign: 'center',
-  },
-  scoreLabel: {
-    fontSize: '12px',
-    textTransform: 'uppercase',
-    color: '#7f8c8d',
-    fontWeight: '600',
-    marginBottom: '5px',
-  },
-  scoreValue: {
-    fontSize: '28px',
-    fontWeight: '800',
-  },
-  section: {
-    marginBottom: '30px',
-  },
-  sectionHeading: {
-    fontSize: '20px',
-    fontWeight: '700',
-    marginBottom: '15px',
-    color: '#2c3e50',
-    paddingBottom: '10px',
-    borderBottom: '2px solid #ecf0f1',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '10px',
-  },
-  recommendation: {
-    padding: '20px',
-    background: 'linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%)',
-    border: '2px solid #4caf50',
-    borderRadius: '8px',
-    marginTop: '20px',
-  },
-  recommendationBad: {
-    background: 'linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%)',
-    border: '2px solid #f44336',
-  },
-  recommendationText: {
-    fontWeight: '600',
-    fontSize: '16px',
-  },
-  recommendationTextGood: {
-    color: '#2e7d32',
-  },
-  recommendationTextBad: {
-    color: '#c62828',
-  },
-  printButton: {
-    padding: '10px 20px',
-    backgroundColor: '#34495e',
-    color: '#fff',
-    border: 'none',
-    borderRadius: '8px',
-    fontSize: '14px',
-    fontWeight: '600',
-    cursor: 'pointer',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px',
-  },
-  loading: {
-    textAlign: 'center',
-    padding: '60px',
-    fontSize: '18px',
-    color: '#95a5a6',
-  },
-};
+import { FileText, Printer, Check, Loader2, AlertCircle } from 'lucide-react';
 
 function Reports() {
   const [startups, setStartups] = useState([]);
@@ -261,172 +53,186 @@ function Reports() {
   };
 
   const getScoreColor = (score) => {
-    if (!score) return '#95a5a6';
-    if (score >= 80) return '#27ae60';
-    if (score >= 60) return '#f39c12';
-    return '#e74c3c';
+    if (!score) return 'text-zinc-500';
+    if (score >= 80) return 'text-[#00FF41]';
+    if (score >= 60) return 'text-[#00E5FF]';
+    return 'text-red-500';
   };
 
   if (loading) {
-    return <div style={styles.loading}>⏳ Loading startups...</div>;
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[50vh] text-zinc-500 animate-pulse">
+        <Loader2 className="w-12 h-12 mb-4 opacity-50 text-[#00E5FF] animate-spin" />
+        <p className="text-lg tracking-wider font-mono">Loading Entities...</p>
+      </div>
+    );
   }
 
   return (
-    <div style={styles.container}>
-      <div style={styles.header} className="no-print">
-        <h1 style={styles.title}>📊 Investor Reports</h1>
-        <p style={styles.subtitle}>
-          Generate comprehensive investment analysis reports for your portfolio startups
-        </p>
+    <div className="max-w-7xl mx-auto pb-20">
+      <div className="no-print mb-12">
+        <div className="flex justify-between items-end">
+          <div>
+            <h1 className="text-4xl font-bold text-white mb-2 tracking-tight flex items-center gap-3">
+              <FileText className="text-[#00FF41]" /> Investor Reports
+            </h1>
+            <p className="text-zinc-400">
+              Generate comprehensive investment analysis reports for your portfolio startups
+            </p>
+          </div>
+        </div>
       </div>
 
-      <div style={styles.selectionSection} className="no-print">
-        <h3 style={styles.sectionTitle}>
-          <span>✓</span> Select Startups for Report
+      <div className="no-print bg-[#0A0A0A]/80 backdrop-blur-xl border border-white/10 rounded-xl p-8 mb-12 shadow-[0_0_50px_rgba(0,0,0,0.3)]">
+        <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2 border-b border-white/10 pb-4">
+          <Check className="text-[#00E5FF]" size={20} /> Select Startups for Report
         </h3>
-        <div style={styles.checkboxGrid}>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-8">
           {startups.map(startup => (
             <label
               key={startup.id}
-              style={{
-                ...styles.checkboxLabel,
-                ...(selectedIds.includes(startup.id) ? styles.checkboxLabelSelected : {})
-              }}
+              className={`flex items-center gap-3 p-4 rounded-lg cursor-pointer transition-all duration-300 border
+                ${selectedIds.includes(startup.id)
+                  ? 'bg-[#00E5FF]/10 border-[#00E5FF] shadow-[0_0_15px_rgba(0,229,255,0.1)]'
+                  : 'bg-black/40 border-zinc-800 hover:border-zinc-600'
+                }`}
             >
-              <input
-                type="checkbox"
-                checked={selectedIds.includes(startup.id)}
-                onChange={() => toggleStartup(startup.id)}
-                style={styles.checkbox}
-              />
-              <span style={styles.startupName}>{startup.name}</span>
+              <div className={`w-5 h-5 rounded flex items-center justify-center border transition-colors
+                 ${selectedIds.includes(startup.id) ? 'bg-[#00E5FF] border-[#00E5FF]' : 'border-zinc-600 bg-transparent'}
+              `}>
+                {selectedIds.includes(startup.id) && <Check size={14} className="text-black font-bold" />}
+                <input
+                  type="checkbox"
+                  checked={selectedIds.includes(startup.id)}
+                  onChange={() => toggleStartup(startup.id)}
+                  className="hidden"
+                />
+              </div>
+              <span className={`font-medium ${selectedIds.includes(startup.id) ? 'text-white' : 'text-zinc-400'}`}>
+                {startup.name}
+              </span>
             </label>
           ))}
         </div>
-        
-        <div style={styles.buttonContainer}>
+
+        <div className="flex items-center gap-6">
           <button
             onClick={handleGenerate}
             disabled={generating || selectedIds.length === 0}
-            style={{
-              ...styles.button,
-              ...(generating || selectedIds.length === 0 ? styles.buttonDisabled : {})
-            }}
+            className={`px-8 py-3 rounded-lg font-bold uppercase tracking-wide transition-all duration-300 shadow-lg flex items-center gap-2
+              ${generating || selectedIds.length === 0
+                ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed'
+                : 'bg-gradient-to-r from-[#00FF41] to-[#00E5FF] text-black hover:scale-[1.02] shadow-[0_0_20px_rgba(0,255,65,0.2)] hover:shadow-[0_0_30px_rgba(0,255,65,0.4)]'
+              }`}
           >
-            {generating ? '⏳ Generating Reports...' : '📄 Generate Reports'}
+            {generating ? (
+              <><Loader2 className="animate-spin h-5 w-5" /> Generating Reports...</>
+            ) : (
+              <><FileText className="h-5 w-5" /> Generate Reports</>
+            )}
           </button>
-          
+
           {selectedIds.length > 0 && (
-            <span style={styles.selectedCount}>
-              {selectedIds.length} startup{selectedIds.length !== 1 ? 's' : ''} selected
+            <span className="text-zinc-500 font-mono text-sm">
+              <span className="text-[#00FF41] font-bold">{selectedIds.length}</span> entities selected
             </span>
           )}
         </div>
       </div>
 
       {reports.length > 0 && (
-        <div className="no-print" style={{ marginBottom: '20px', textAlign: 'right' }}>
-          <button onClick={handlePrint} style={styles.printButton}>
-            <span>🖨️</span> Print / Save as PDF
+        <div className="no-print mb-8 text-right">
+          <button
+            onClick={handlePrint}
+            className="px-6 py-3 bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg font-medium transition-all flex items-center gap-2 ml-auto hover:shadow-lg border border-white/5"
+          >
+            <Printer size={18} /> Print / Save as PDF
           </button>
         </div>
       )}
 
-      {reports.map((report, index) => (
-        <div key={report.startup_id || index} style={styles.report}>
-          <div style={styles.reportHeader}>
-            <h2 style={styles.reportTitle}>{report.startup_name}</h2>
-            <div style={styles.reportSubtitle}>
-              <span>📋</span> Investment Analysis Report
-              <span>•</span>
-              <span>📅 {new Date().toLocaleDateString('en-US', { 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric' 
-              })}</span>
-            </div>
-          </div>
+      {/* Reports Section */}
+      <div className="space-y-12 print:space-y-0 text-white print:text-black">
+        {reports.map((report, index) => (
+          <div key={report.startup_id || index} className="bg-[#0A0A0A]/90 backdrop-blur-xl border border-white/10 rounded-xl p-12 print:p-0 print:border-none print:shadow-none print:bg-white print:text-black mb-12 print:block break-after-page">
 
-          {report.score_breakdown && (
-            <div style={styles.scoreCard}>
-              {report.overall_score && (
-                <div style={styles.scoreItem}>
-                  <div style={styles.scoreLabel}>Overall Score</div>
-                  <div style={{
-                    ...styles.scoreValue,
-                    color: getScoreColor(report.overall_score)
-                  }}>
-                    {report.overall_score.toFixed(1)}
+            {/* Report Header */}
+            <div className="border-b-2 border-[#00FF41] pb-6 mb-8 print:border-black">
+              <h2 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-zinc-400 print:text-black print:bg-none mb-2">
+                {report.startup_name}
+              </h2>
+              <div className="flex items-center gap-3 text-zinc-500 print:text-black font-mono text-sm uppercase tracking-wider">
+                <span>Investment Analysis Report</span>
+                <span>•</span>
+                <span>{new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+              </div>
+            </div>
+
+            {report.score_breakdown && (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 p-6 bg-white/5 rounded-lg border border-white/5 print:bg-gray-50 print:border-gray-200">
+                {report.overall_score && (
+                  <div className="text-center">
+                    <div className="text-xs uppercase font-bold text-zinc-500 mb-1 tracking-wider">Overall Score</div>
+                    <div className={`text-4xl font-bold ${getScoreColor(report.overall_score)} print:text-black`}>
+                      {report.overall_score.toFixed(1)}
+                    </div>
                   </div>
-                </div>
-              )}
-              {report.confidence_level && (
-                <div style={styles.scoreItem}>
-                  <div style={styles.scoreLabel}>Confidence</div>
-                  <div style={styles.scoreValue}>{report.confidence_level}</div>
-                </div>
-              )}
-            </div>
-          )}
+                )}
+                {report.confidence_level && (
+                  <div className="text-center border-l border-white/10 print:border-gray-200">
+                    <div className="text-xs uppercase font-bold text-zinc-500 mb-1 tracking-wider">Confidence</div>
+                    <div className="text-2xl font-bold text-white print:text-black mt-2">{report.confidence_level}</div>
+                  </div>
+                )}
+              </div>
+            )}
 
-          {report.executive_summary && (
-            <div style={styles.section}>
-              <h3 style={styles.sectionHeading}>
-                <span>🎯</span> Executive Summary
-              </h3>
+            {/* Sections */}
+            <ReportSection title="Executive Summary" icon="🎯">
               <ScoreAnalysis reasoning={report.executive_summary} />
-            </div>
-          )}
+            </ReportSection>
 
-          {report.score_breakdown && (
-            <div style={styles.section}>
-              <h3 style={styles.sectionHeading}>
-                <span>📊</span> Score Breakdown
-              </h3>
+            <ReportSection title="Score Breakdown" icon="📊">
               <ScoreAnalysis reasoning={report.score_breakdown} />
-            </div>
-          )}
+            </ReportSection>
 
-          {report.market_analysis && (
-            <div style={styles.section}>
-              <h3 style={styles.sectionHeading}>
-                <span>📈</span> Market Analysis
-              </h3>
+            <ReportSection title="Market Analysis" icon="📈">
               <ScoreAnalysis reasoning={report.market_analysis} />
-            </div>
-          )}
+            </ReportSection>
 
-          {report.swot_analysis && (
-            <div style={styles.section}>
-              <h3 style={styles.sectionHeading}>
-                <span>⚖️</span> SWOT Analysis
-              </h3>
+            <ReportSection title="SWOT Analysis" icon="⚖️">
               <ScoreAnalysis reasoning={report.swot_analysis} />
-            </div>
-          )}
+            </ReportSection>
 
-          {report.recommendation && (
-            <div style={{
-              ...styles.recommendation,
-              ...(report.recommendation.toLowerCase().includes('not recommend') || 
-                  report.recommendation.toLowerCase().includes('pass') ? 
-                  styles.recommendationBad : {})
-            }}>
-              <h3 style={styles.sectionHeading}>
-                <span>💡</span> Investment Recommendation
-              </h3>
-              <p style={{
-                ...styles.recommendationText,
-                ...(report.recommendation.toLowerCase().includes('not recommend') || 
-                    report.recommendation.toLowerCase().includes('pass') ? 
-                    styles.recommendationTextBad : styles.recommendationTextGood)
-              }}>
-                {report.recommendation}
-              </p>
-            </div>
-          )}
-        </div>
-      ))}
+            {report.recommendation && (
+              <div className={`mt-8 p-6 rounded-lg border-l-4 print:border-4
+                ${report.recommendation.toLowerCase().includes('not recommend') || report.recommendation.toLowerCase().includes('pass')
+                  ? 'bg-red-500/10 border-red-500 print:bg-red-50 print:border-red-500'
+                  : 'bg-[#00FF41]/10 border-[#00FF41] print:bg-green-50 print:border-green-500'
+                }`}
+              >
+                <h3 className={`text-xl font-bold mb-2 flex items-center gap-2
+                   ${report.recommendation.toLowerCase().includes('not recommend') || report.recommendation.toLowerCase().includes('pass')
+                    ? 'text-red-400 print:text-red-700'
+                    : 'text-[#00FF41] print:text-green-700'
+                  }`}
+                >
+                  💡 Investment Recommendation
+                </h3>
+                <p className={`font-semibold text-lg leading-relaxed
+                   ${report.recommendation.toLowerCase().includes('not recommend') || report.recommendation.toLowerCase().includes('pass')
+                    ? 'text-red-200 print:text-red-900'
+                    : 'text-zinc-200 print:text-green-900'
+                  }`}
+                >
+                  {report.recommendation}
+                </p>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
 
       <style>{`
         @media print {
@@ -434,13 +240,30 @@ function Reports() {
             display: none !important;
           }
           body {
-            print-color-adjust: exact;
-            -webkit-print-color-adjust: exact;
+            background-color: white !important;
+            color: black !important;
+          }
+          .bg-black {
+             background-color: white !important;
+          }
+          .text-white {
+             color: black !important;
           }
         }
       `}</style>
     </div>
   );
 }
+
+const ReportSection = ({ title, icon, children }) => (
+  <div className="mb-8 print:mb-6">
+    <h3 className="text-xl font-bold text-white print:text-black mb-4 flex items-center gap-2 border-b border-white/5 pb-2 print:border-gray-200">
+      <span className="text-[#00E5FF] print:text-black">{icon}</span> {title}
+    </h3>
+    <div className="text-zinc-300 print:text-gray-800 leading-relaxed">
+      {children}
+    </div>
+  </div>
+);
 
 export default Reports;
