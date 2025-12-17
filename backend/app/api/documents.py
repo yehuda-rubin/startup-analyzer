@@ -61,7 +61,7 @@ async def upload_documents(
             print(f"📝 First 200 chars: {processed['text'][:200]}")
             
             if text_length < 50:
-                print(f"⚠️ WARNING: Text too short! Might be extraction failure.")
+                print(f"⚠️ WARNING: Initial text extraction low. Vision OCR might have been used.")
             
             # Create document record
             doc = Document(

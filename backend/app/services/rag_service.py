@@ -125,12 +125,20 @@ class RAGServiceOptimized:
                 chunks.extend(text_chunks)
                 
                 # Add metadata for each chunk
-                base_metadata = metadatas[i] if metadatas else {}
+                base_metadata = {}
+                if metadatas and i < len(metadatas):
+                    base_metadata = metadatas[i]
+                
                 chunk_metadatas.extend([
                     {**base_metadata, "chunk_id": j}
                     for j in range(len(text_chunks))
                 ])
             
+            
+            if not chunks:
+                print("⚠️ No chunks generated from texts (empty document?). Returning empty list.")
+                return []
+
             # ⚡ Run in thread pool (FAISS operations are blocking)
             loop = asyncio.get_event_loop()
             

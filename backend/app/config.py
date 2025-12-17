@@ -14,8 +14,8 @@ class Settings(BaseSettings):
     TAVILY_API_KEY: str = ""
     
     # Storage
-    UPLOAD_DIR: str = "/tmp/uploads"
-    VECTOR_STORE_DIR: str = "/tmp/vector_store"
+    UPLOAD_DIR: str = "data/uploads"
+    VECTOR_STORE_DIR: str = "data/vector_store"
     
     # Application
     APP_NAME: str = "Startup Analyzer AI"
