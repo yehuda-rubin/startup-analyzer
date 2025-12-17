@@ -284,6 +284,9 @@ SOURCE 1 (Internal Documents - Primary):
 SOURCE 2 (Web Validation - Secondary):
 {web_validation[:2000] if web_validation else "No web validation available"}
 
+CRITICAL LANGUAGE REQUIREMENT:
+🔴 RESPOND ONLY IN ENGLISH! Even if source documents are in Hebrew, Arabic, Chinese, or any other language, your ENTIRE response must be in English only. Translate all content from source documents into English.
+
 CRITICAL ANALYSIS RULES:
 1. Use ONLY information from SOURCE 1 (documents) as the base truth
 2. Use SOURCE 2 (web) to VALIDATE and FLAG DISCREPANCIES
@@ -304,15 +307,16 @@ CRITICAL JSON FORMATTING RULES:
 - Escape ALL special characters
 - No line breaks inside strings
 - No trailing commas
+- ALL TEXT MUST BE IN ENGLISH ONLY
 
-Respond in this EXACT format:
+Respond in this EXACT format (ALL ENGLISH):
 {{
-  "summary": "Brief 2-3 sentence summary",
-  "key_insights": ["insight 1", "insight 2"],
-  "strengths": ["strength 1"],
-  "weaknesses": ["weakness 1"],
-  "opportunities": ["opportunity 1"],
-  "risks": ["risk 1"]
+  "summary": "Brief 2-3 sentence summary IN ENGLISH",
+  "key_insights": ["insight 1 IN ENGLISH", "insight 2 IN ENGLISH"],
+  "strengths": ["strength 1 IN ENGLISH"],
+  "weaknesses": ["weakness 1 IN ENGLISH"],
+  "opportunities": ["opportunity 1 IN ENGLISH"],
+  "risks": ["risk 1 IN ENGLISH"]
 }}
 
 CRITICAL: If web validation shows MAJOR red flags, include in risks as: "CRITICAL RISK: description"."""
