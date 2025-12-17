@@ -3,101 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { deleteStartup } from '../services/api';
 
 const getScoreColor = (score) => {
-  if (!score) return '#95a5a6';
-  if (score >= 80) return '#27ae60';
-  if (score >= 60) return '#f39c12';
-  return '#e74c3c';
-};
-
-const styles = {
-  card: {
-    backgroundColor: 'white',
-    borderRadius: '12px',
-    padding: '24px',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-    cursor: 'pointer',
-    transition: 'all 0.3s ease',
-    position: 'relative',
-  },
-  cardHover: {
-    transform: 'translateY(-4px)',
-    boxShadow: '0 4px 16px rgba(0,0,0,0.15)',
-  },
-  header: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'start',
-    marginBottom: '12px',
-  },
-  name: {
-    fontSize: '20px',
-    fontWeight: '700',
-    color: '#2c3e50',
-    margin: '0',
-    flex: 1,
-  },
-  score: {
-    fontSize: '24px',
-    fontWeight: '700',
-    marginLeft: '12px',
-  },
-  description: {
-    color: '#555',
-    fontSize: '14px',
-    marginBottom: '16px',
-    lineHeight: '1.5',
-  },
-  meta: {
-    display: 'flex',
-    gap: '8px',
-    flexWrap: 'wrap',
-    marginBottom: '16px',
-  },
-  badge: {
-    padding: '4px 12px',
-    borderRadius: '12px',
-    fontSize: '13px',
-    fontWeight: '600',
-  },
-  badgeIndustry: {
-    backgroundColor: '#e8f4f8',
-    color: '#2980b9',
-  },
-  badgeStage: {
-    backgroundColor: '#fce8f3',
-    color: '#8e44ad',
-  },
-  actions: {
-    display: 'flex',
-    gap: '8px',
-  },
-  button: {
-    padding: '10px 16px',
-    border: 'none',
-    borderRadius: '6px',
-    fontSize: '14px',
-    fontWeight: '600',
-    cursor: 'pointer',
-    transition: 'all 0.2s',
-    flex: 1,
-  },
-  buttonPrimary: {
-    backgroundColor: '#3498db',
-    color: 'white',
-  },
-  buttonSecondary: {
-    backgroundColor: '#ecf0f1',
-    color: '#2c3e50',
-  },
-  buttonDelete: {
-    backgroundColor: '#e74c3c',
-    color: 'white',
-    flex: '0 0 auto',
-    padding: '10px 12px',
-  },
-  deleteIcon: {
-    fontSize: '16px',
-  },
+  if (!score) return 'text-slate-400';
+  const numScore = parseFloat(score);
+  if (numScore >= 80) return 'text-emerald-400';
+  if (numScore >= 60) return 'text-yellow-400';
+  return 'text-red-400';
 };
 
 function StartupCard({ startup, score, onClick, onDelete }) {
@@ -108,7 +18,6 @@ function StartupCard({ startup, score, onClick, onDelete }) {
   const handleDelete = async (e) => {
     e.stopPropagation();
     
-    // First confirmation
     const confirmFirst = window.confirm(
       `Are you sure you want to delete "${startup.name}"?\n\n` +
       `This will delete:\n` +
@@ -120,7 +29,6 @@ function StartupCard({ startup, score, onClick, onDelete }) {
     
     if (!confirmFirst) return;
     
-    // Second confirmation
     const confirmSecond = window.confirm(
       `⚠️ FINAL CONFIRMATION ⚠️\n\n` +
       `Delete "${startup.name}" permanently?\n\n` +
@@ -134,7 +42,6 @@ function StartupCard({ startup, score, onClick, onDelete }) {
       await deleteStartup(startup.id);
       alert(`✓ "${startup.name}" deleted successfully`);
       
-      // Call onDelete callback to refresh the list
       if (onDelete) {
         onDelete(startup.id);
       }
@@ -148,46 +55,44 @@ function StartupCard({ startup, score, onClick, onDelete }) {
 
   return (
     <div
-      style={{
-        ...styles.card,
-        ...(isHovered ? styles.cardHover : {}),
-      }}
+      className={`bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10 cursor-pointer transition-all duration-300 ${
+        isHovered ? 'shadow-2xl shadow-indigo-500/10 -translate-y-1 border-indigo-500/30 bg-white/10' : ''
+      }`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onClick={() => onClick && onClick(startup)}
     >
-      <div style={styles.header}>
-        <h3 style={styles.name}>{startup.name}</h3>
+      <div className="flex justify-between items-start mb-4">
+        <h3 className="text-xl font-bold text-white flex-1 mr-3">{startup.name}</h3>
         {score && (
-          <span style={{
-            ...styles.score,
-            color: getScoreColor(score)
-          }}>
+          <span className={`text-2xl font-bold ${getScoreColor(score)}`}>
             {score}
           </span>
         )}
       </div>
 
       {startup.description && (
-        <p style={styles.description}>{startup.description}</p>
+        <p className="text-sm text-slate-400 mb-4 leading-relaxed line-clamp-2">
+          {startup.description}
+        </p>
       )}
 
-      <div style={styles.meta}>
+      <div className="flex gap-2 flex-wrap mb-5">
         {startup.industry && (
-          <span style={{...styles.badge, ...styles.badgeIndustry}}>
+          <span className="px-3 py-1 rounded-full text-xs font-semibold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
             {startup.industry}
           </span>
         )}
         {startup.stage && (
-          <span style={{...styles.badge, ...styles.badgeStage}}>
+          <span className="px-3 py-1 rounded-full text-xs font-semibold bg-purple-500/20 text-purple-300 border border-purple-500/30">
             {startup.stage}
           </span>
         )}
       </div>
 
-      <div style={styles.actions}>
+      <div className="flex gap-2 pt-4 border-t border-white/5">
         <button
-          style={{...styles.button, ...styles.buttonPrimary}}
+          className="flex-1 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-semibold transition-all hover:shadow-lg hover:shadow-indigo-500/25"
           onClick={(e) => {
             e.stopPropagation();
             navigate(`/analysis/${startup.id}`);
@@ -196,7 +101,7 @@ function StartupCard({ startup, score, onClick, onDelete }) {
           View Analysis
         </button>
         <button
-          style={{...styles.button, ...styles.buttonSecondary}}
+          className="flex-1 px-4 py-2.5 bg-white/5 hover:bg-white/10 text-slate-300 rounded-lg text-sm font-semibold transition-all border border-white/10"
           onClick={(e) => {
             e.stopPropagation();
             navigate(`/market/${startup.id}`);
@@ -205,14 +110,12 @@ function StartupCard({ startup, score, onClick, onDelete }) {
           Market Data
         </button>
         <button
-          style={{...styles.button, ...styles.buttonDelete}}
+          className="px-3 py-2.5 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-lg text-sm font-semibold transition-all border border-red-500/30"
           onClick={handleDelete}
           disabled={isDeleting}
           title="Delete Startup"
         >
-          <span style={styles.deleteIcon}>
-            {isDeleting ? '⏳' : '🗑️'}
-          </span>
+          {isDeleting ? '⏳' : '🗑️'}
         </button>
       </div>
     </div>
