@@ -510,7 +510,7 @@ Act as a Senior VC Analyst. Review the deck AND web validation to generate a con
                 prompt=prompt,
                 context=None,
                 temperature=0.7,
-                max_tokens=11000
+                max_tokens=16000
             )
             
             reasoning = reasoning.strip()

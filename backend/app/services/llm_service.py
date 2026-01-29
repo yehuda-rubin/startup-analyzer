@@ -72,7 +72,7 @@ class LLMServiceOptimized:
         prompt: str,
         context: Optional[str] = None,
         temperature: float = 0.7,
-        max_tokens: int = 8000,  # ⚡ Reduced from 11000 for speed
+        max_tokens: int = 16000,  # ⚡ Reduced from 11000 for speed
         max_retries: int = 3
     ) -> str:
         """Generate text using Gemini - TRUE ASYNC with rate limiting"""
@@ -330,7 +330,7 @@ CRITICAL: If web validation shows MAJOR red flags, include in risks as: "CRITICA
         self,
         prompts: List[str],
         temperature: float = 0.7,
-        max_tokens: int = 8000
+        max_tokens: int = 16000
     ) -> List[str]:
         """Generate multiple responses - TRUE ASYNC with rate limiting"""
         # Note: rate limiting is already handled in generate()
