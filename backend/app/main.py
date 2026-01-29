@@ -35,6 +35,7 @@ app.add_middleware(
         "https://*.vercel.app",                     # All Vercel preview deploys
         # 👇 After deploying to Vercel, add your production URL here:
         # "https://your-app-name.vercel.app",
+        "https://startup-analyzer-eight.vercel.app",
     ],
     allow_credentials=True,
     allow_methods=["*"],
