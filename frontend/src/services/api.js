@@ -1,7 +1,18 @@
 import axios from 'axios';
 
-// ✅ Fix: Hardcode the full URL
-const API_BASE_URL = 'http://localhost:8000/api';
+// ⚡ PRODUCTION-READY API Configuration
+// 
+// How it works:
+// 1. In Vercel: REACT_APP_API_URL is set via Environment Variables
+// 2. Locally: Falls back to localhost:8000
+// 3. Build: Vercel injects the env var at build time
+//
+// Koyeb Backend URL:
+// https://prepared-milissent-startup-analyzer-20437693.koyeb.app/api
+
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000/api';
+
+console.log('🔗 API Base URL:', API_BASE_URL);
 
 const api = axios.create({
   baseURL: API_BASE_URL,

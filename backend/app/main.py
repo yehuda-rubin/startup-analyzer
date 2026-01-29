@@ -17,10 +17,25 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# CORS
+# ⚡⚡ PRODUCTION-READY CORS Configuration
+# 
+# Security: Only allow requests from known origins
+# - Local development (http://localhost:3000)
+# - Vercel production (will be updated after first deploy)
+# - Vercel previews (*.vercel.app for PR previews)
+#
+# ⚠️ IMPORTANT: After deploying to Vercel, update the production URL!
+#
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, specify exact origins
+    # ✅ Secure: Whitelist specific origins
+    allow_origins=[
+        "http://localhost:3000",                    # Local development
+        "http://localhost:3001",                    # Alternative local port
+        "https://*.vercel.app",                     # All Vercel preview deploys
+        # 👇 After deploying to Vercel, add your production URL here:
+        # "https://your-app-name.vercel.app",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -36,7 +51,8 @@ async def startup_event():
 async def root():
     return {
         "message": "Startup Analyzer API is running",
-        "version": "1.0.0"
+        "version": "1.0.0",
+        "cors_origins": "Configured for Vercel + localhost"
     }
 
 @app.get("/health")
