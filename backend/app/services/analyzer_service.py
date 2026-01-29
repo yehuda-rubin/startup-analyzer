@@ -280,7 +280,7 @@ class AnalyzerService:
         consolidated_summary = ". ".join(all_summaries[:3]) if all_summaries else "Analysis completed"
         
         return {
-            "summary": consolidated_summary[:500],  # Truncate
+            "summary": consolidated_summary[:2000],  # Truncate
             "key_insights": deduplicate_list(all_key_insights, 10),
             "strengths": deduplicate_list(all_strengths, 8),
             "weaknesses": deduplicate_list(all_weaknesses, 8),
