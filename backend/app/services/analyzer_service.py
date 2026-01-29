@@ -263,17 +263,35 @@ class AnalyzerService:
         
         # Deduplicate and limit
         def deduplicate_list(items: List[str], max_items: int = 10) -> List[str]:
-            """Remove duplicates while preserving order"""
-            seen = set()
+            """Remove duplicates using word similarity"""
             result = []
+            
             for item in items:
-                # Normalize for comparison
-                normalized = item.lower().strip()
-                if normalized and normalized not in seen and len(normalized) > 10:
-                    seen.add(normalized)
+                if len(item.strip()) < 10:
+                    continue
+                
+                # Check similarity with existing items
+                is_duplicate = False
+                item_words = set(item.lower().split())
+                
+                for existing in result:
+                    existing_words = set(existing.lower().split())
+                    
+                    # Calculate word overlap
+                    overlap = len(item_words & existing_words)
+                    total = len(item_words | existing_words)
+                    similarity = overlap / total if total > 0 else 0
+                    
+                    # If 70%+ similarity → duplicate
+                    if similarity > 0.7:
+                        is_duplicate = True
+                        break
+                
+                if not is_duplicate:
                     result.append(item)
                     if len(result) >= max_items:
                         break
+            
             return result
         
         # Create consolidated summary (first 2-3 most relevant)
