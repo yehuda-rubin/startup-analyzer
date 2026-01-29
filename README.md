@@ -344,7 +344,7 @@ This project is licensed under the MIT License - see LICENSE file for details.
 
 ## 👥 Authors
 
-**Yehonatan** - Senior Backend Architect & Python/LangChain Expert
+**Yehuda Rubin, Ido Shamir, Uri Maged, Itamar Sorin**
 
 ## 🙏 Acknowledgments
 
