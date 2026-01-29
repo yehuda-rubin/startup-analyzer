@@ -213,7 +213,7 @@ class AnalyzerService:
                 query=query,
                 context_chunks=context,
                 analysis_type="query_specific",
-                web_validation=web_validation[:1000]  # Truncate for each query
+                web_validation=web_validation[:3000]  # Truncate for each query
             )
             
             print(f"   ✅ Query {query_num}: Analyzed")
