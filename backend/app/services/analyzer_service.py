@@ -281,11 +281,11 @@ class AnalyzerService:
         
         return {
             "summary": consolidated_summary[:2000],  # Truncate
-            "key_insights": deduplicate_list(all_key_insights, 10),
-            "strengths": deduplicate_list(all_strengths, 8),
-            "weaknesses": deduplicate_list(all_weaknesses, 8),
-            "opportunities": deduplicate_list(all_opportunities, 6),
-            "threats": deduplicate_list(all_threats, 8)
+            "key_insights": deduplicate_list(all_key_insights, 15),
+            "strengths": deduplicate_list(all_strengths, 15),
+            "weaknesses": deduplicate_list(all_weaknesses, 15),
+            "opportunities": deduplicate_list(all_opportunities, 15),
+            "threats": deduplicate_list(all_threats, 12)
         }
 
 
