@@ -279,10 +279,10 @@ CRITICAL INSTRUCTIONS:
         prompt = f"""You are an expert startup analyst with access to TWO sources of truth:
 
 SOURCE 1 (Internal Documents - Primary):
-{context[:3000]}  
+{context[:5000]}  
 
 SOURCE 2 (Web Validation - Secondary):
-{web_validation[:2000] if web_validation else "No web validation available"}
+{web_validation[:3000] if web_validation else "No web validation available"}
 
 CRITICAL LANGUAGE REQUIREMENT:
 🔴 RESPOND ONLY IN ENGLISH! Even if source documents are in Hebrew, Arabic, Chinese, or any other language, your ENTIRE response must be in English only. Translate all content from source documents into English.
