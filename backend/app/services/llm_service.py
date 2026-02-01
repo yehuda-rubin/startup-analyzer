@@ -8,17 +8,12 @@ from concurrent.futures import ThreadPoolExecutor
 from ..config import settings
 
 
-class LLMServiceOptimized:
+class LLMService:
     """
-    ⚡ OPTIMIZED LLM Service - True Async Support
+    ⚡ OPTIMIZED LLM Service - February 2026 Models
     
-    KEY IMPROVEMENTS:
-    1. ✅ Thread pool for true parallelism (Gemini SDK is sync)
-    2. ✅ Faster model selection (Flash-first)
-    3. ✅ Reduced token limits for speed
-    4. ✅ Better error handling with fallbacks
-    
-    TIME REDUCTION: ~40% faster per call
+    ✅ FIXED: Updated to February 2026 available models
+    ✅ FIXED: temperature parameter bug
     """
     
     def __init__(self):
@@ -27,33 +22,56 @@ class LLMServiceOptimized:
             
         genai.configure(api_key=settings.GOOGLE_API_KEY)
         
-        # ⚡ OPTIMIZATION: Prioritize stable models with high quota
+        # ⚡ FEBRUARY 2026 MODELS (Updated per Gemini's recommendation)
         models_to_try = [
-            "models/gemini-1.5-flash",      # Stable, high quota (15 RPM free)
-            "models/gemini-1.5-flash-001",  # Alternative stable version
-            "models/gemini-1.5-flash-002",  # Newer stable version
-            "models/gemini-flash-latest",   # Latest stable
-            "models/gemini-1.5-pro",        # Fallback (slower but works)
+            # Performance Series (Fast & Cheap) - Best for RAG/Deduplication
+            "gemini-2.5-flash",           # Most stable and available (RECOMMENDED)
+            "gemini-3-flash-preview",     # Newest for AI Agents (January 2026)
+            "gemini-2.5-flash-lite",      # Most economical for simple tasks
+            
+            # Reasoning Series (Powerful) - Best for Deep Analysis
+            "gemini-2.5-pro",             # Stable powerful model with adaptive thinking
+            "gemini-3-pro-preview",       # Most powerful available (huge context)
+            
+            # Fallback to older naming conventions (just in case)
+            "gemini-flash-latest",
+            "gemini-pro-latest",
         ]
         
         self.model = None
         self.model_name = None
         last_error = None
         
+        print("🔍 Searching for available Gemini model (February 2026)...")
         for model_name in models_to_try:
             try:
+                print(f"   Trying: {model_name}...", end="")
                 test_model = genai.GenerativeModel(model_name)
                 test_response = test_model.generate_content("Hi")
                 if test_response.text:
                     self.model = test_model
                     self.model_name = model_name
+                    print(f" ✅ SUCCESS!")
                     print(f"✅ Using Gemini model: {model_name}")
                     break
             except Exception as e:
-                last_error = str(e)
+                error_str = str(e)
+                # Don't print full 404 errors - they're expected
+                if "404" in error_str or "NOT_FOUND" in error_str:
+                    print(f" ❌ Not available")
+                else:
+                    print(f" ❌ {error_str[:50]}")
+                last_error = error_str
                 continue
         
         if not self.model:
+            print(f"\n❌ CRITICAL ERROR: No working Gemini model found!")
+            print(f"Last error: {last_error}")
+            print(f"\n💡 SOLUTION:")
+            print(f"   1. Check API key: https://aistudio.google.com/app/apikey")
+            print(f"   2. List available models with:")
+            print(f"      curl 'https://generativelanguage.googleapis.com/v1beta/models?key=YOUR_API_KEY'")
+            print(f"   3. Update models_to_try list in llm_service.py")
             raise Exception(f"No working Gemini model found. Last error: {last_error}")
         
         # ⚡ Thread pool for true async (Gemini SDK is blocking)
@@ -72,7 +90,7 @@ class LLMServiceOptimized:
         prompt: str,
         context: Optional[str] = None,
         temperature: float = 0.7,
-        max_tokens: int = 16000,  # ⚡ Reduced from 11000 for speed
+        max_tokens: int = 16000,
         max_retries: int = 3
     ) -> str:
         """Generate text using Gemini - TRUE ASYNC with rate limiting"""
@@ -216,9 +234,16 @@ class LLMServiceOptimized:
         prompt: str,
         context: Optional[str] = None,
         schema: Optional[Dict] = None,
-        max_retries: int = 3
+        temperature: float = 0.3,
+        max_tokens: int = 16000,
+        max_retries: int = 3,
+        **kwargs
     ) -> Dict[str, Any]:
-        """Generate structured JSON output with robust parsing - TRUE ASYNC with rate limiting"""
+        """
+        Generate structured JSON output with robust parsing
+        
+        ✅ FIXED: Now properly accepts temperature, max_tokens, and other parameters
+        """
         try:
             structured_prompt = f"""{prompt}
 
@@ -234,11 +259,12 @@ CRITICAL INSTRUCTIONS:
             if schema:
                 structured_prompt += f"\n\nRequired JSON structure:\n{json.dumps(schema, indent=2)}\n"
             
-            # ⚡ Use rate-limited generate
+            # ⚡ Use rate-limited generate with specified parameters
             response_text = await self.generate(
                 structured_prompt,
                 context=context,
-                temperature=0.3,  # Lower temp for structured output
+                temperature=temperature,
+                max_tokens=max_tokens,
                 max_retries=max_retries
             )
             
@@ -302,7 +328,7 @@ Question: {query}
 
 CRITICAL JSON FORMATTING RULES:
 - Return ONLY valid JSON, no markdown, no explanations
-- Use single quotes in text content (not double quotes)
+- Use double quotes for strings (not single quotes)
 - Keep text short (max 100 chars per item)
 - Escape ALL special characters
 - No line breaks inside strings
@@ -323,7 +349,7 @@ CRITICAL: If web validation shows MAJOR red flags, include in risks as: "CRITICA
 
         return await self.generate_structured(
             prompt=prompt,
-            context=None  # Already included in prompt
+            temperature=0.3
         )
     
     async def batch_generate(
@@ -333,8 +359,6 @@ CRITICAL: If web validation shows MAJOR red flags, include in risks as: "CRITICA
         max_tokens: int = 16000
     ) -> List[str]:
         """Generate multiple responses - TRUE ASYNC with rate limiting"""
-        # Note: rate limiting is already handled in generate()
-        # The semaphore will automatically throttle concurrent requests
         tasks = [
             self.generate(prompt, None, temperature, max_tokens)
             for prompt in prompts
@@ -343,4 +367,4 @@ CRITICAL: If web validation shows MAJOR red flags, include in risks as: "CRITICA
 
 
 # Singleton instance
-llm_service = LLMServiceOptimized()
+llm_service = LLMService()

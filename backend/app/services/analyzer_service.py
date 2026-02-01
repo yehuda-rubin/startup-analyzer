@@ -324,8 +324,7 @@ CRITICAL: Respond with ONLY valid JSON, no markdown, no explanations:
 }}"""
 
             result = await llm_service.generate_structured(
-                prompt=prompt,
-                temperature=0.3  # Low temperature for consistency
+                prompt=prompt
             )
             
             print(f"   ✅ LLM deduplication complete:")
