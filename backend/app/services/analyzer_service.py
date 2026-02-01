@@ -16,6 +16,7 @@ class AnalyzerService:
     2. ✅ Single web search (cached and reused)
     3. ✅ Batch RAG queries
     4. ✅ Async-native throughout
+    5. ✅ LLM-based semantic deduplication (NEW!)
     
     TIME REDUCTION: 30+ seconds → 3-5 seconds
     """
@@ -99,10 +100,10 @@ class AnalyzerService:
         print(f"   Queries processed: {len(results)}")
         
         # ═══════════════════════════════════════════════════════
-        # 🚀 PHASE 3: CONSOLIDATE RESULTS
+        # 🚀 PHASE 3: CONSOLIDATE RESULTS (LLM DEDUPLICATION)
         # ═══════════════════════════════════════════════════════
         print(f"\n{'─'*60}")
-        print(f"🚀 PHASE 3: Consolidate Results")
+        print(f"🚀 PHASE 3: Consolidate Results (LLM Semantic Dedup)")
         print(f"{'─'*60}")
         
         phase3_start = asyncio.get_event_loop().time()
@@ -117,8 +118,8 @@ class AnalyzerService:
             if result:
                 all_insights.append(result)
         
-        # Consolidate all insights into final analysis
-        consolidated = self._consolidate_insights(all_insights)
+        # Consolidate all insights into final analysis (NOW WITH LLM!)
+        consolidated = await self._consolidate_insights(all_insights)
         
         phase3_time = asyncio.get_event_loop().time() - phase3_start
         print(f"✅ Phase 3 completed in {phase3_time:.2f}s")
@@ -156,7 +157,7 @@ class AnalyzerService:
         print(f"⏱️  Total time: {total_time:.2f}s")
         print(f"   Phase 1 (Web):      {phase1_time:.2f}s")
         print(f"   Phase 2 (Analysis): {phase2_time:.2f}s")
-        print(f"   Phase 3 (Consolidate): {phase3_time:.2f}s")
+        print(f"   Phase 3 (LLM Dedup): {phase3_time:.2f}s")
         print(f"{'='*60}\n")
         
         return analysis_record
@@ -213,7 +214,7 @@ class AnalyzerService:
                 query=query,
                 context_chunks=context,
                 analysis_type="query_specific",
-                web_validation=web_validation[:3000]  # Truncate for each query
+                web_validation=web_validation[:1000]  # Truncate for each query
             )
             
             print(f"   ✅ Query {query_num}: Analyzed")
@@ -227,8 +228,8 @@ class AnalyzerService:
             print(f"   ❌ Query {query_num} failed: {str(e)}")
             return None
     
-    def _consolidate_insights(self, all_insights: List[Dict[str, Any]]) -> Dict[str, Any]:
-        """Consolidate multiple query results into single analysis"""
+    async def _consolidate_insights(self, all_insights: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """Consolidate multiple query results using LLM for semantic deduplication"""
         
         if not all_insights:
             return {
@@ -239,6 +240,8 @@ class AnalyzerService:
                 "opportunities": [],
                 "threats": []
             }
+        
+        print(f"\n🧠 LLM-based semantic deduplication starting...")
         
         # Collect all items from each category
         all_summaries = []
@@ -261,50 +264,107 @@ class AnalyzerService:
             all_opportunities.extend(insight.get("opportunities", []))
             all_threats.extend(insight.get("risks", []) or insight.get("threats", []))
         
-        # Deduplicate and limit
-        def deduplicate_list(items: List[str], max_items: int = 10) -> List[str]:
-            """Remove duplicates using word similarity"""
-            result = []
+        print(f"   📊 Raw counts before dedup:")
+        print(f"      Insights: {len(all_key_insights)}")
+        print(f"      Strengths: {len(all_strengths)}")
+        print(f"      Weaknesses: {len(all_weaknesses)}")
+        print(f"      Opportunities: {len(all_opportunities)}")
+        print(f"      Threats: {len(all_threats)}")
+        
+        # Use LLM for semantic deduplication
+        try:
+            import json
             
-            for item in items:
-                if len(item.strip()) < 10:
-                    continue
-                
-                # Check similarity with existing items
-                is_duplicate = False
-                item_words = set(item.lower().split())
-                
-                for existing in result:
-                    existing_words = set(existing.lower().split())
-                    
-                    # Calculate word overlap
-                    overlap = len(item_words & existing_words)
-                    total = len(item_words | existing_words)
-                    similarity = overlap / total if total > 0 else 0
-                    
-                    # If 70%+ similarity → duplicate
-                    if similarity > 0.7:
-                        is_duplicate = True
-                        break
-                
-                if not is_duplicate:
-                    result.append(item)
-                    if len(result) >= max_items:
-                        break
+            prompt = f"""You are an expert startup analyst performing semantic deduplication on analysis results.
+
+RAW DATA (contains duplicates and similar items):
+
+SUMMARIES ({len(all_summaries)} items):
+{chr(10).join(f"{i+1}. {s}" for i, s in enumerate(all_summaries[:5]))}
+
+KEY INSIGHTS ({len(all_key_insights)} items):
+{chr(10).join(f"- {item}" for item in all_key_insights)}
+
+STRENGTHS ({len(all_strengths)} items):
+{chr(10).join(f"- {item}" for item in all_strengths)}
+
+WEAKNESSES ({len(all_weaknesses)} items):
+{chr(10).join(f"- {item}" for item in all_weaknesses)}
+
+OPPORTUNITIES ({len(all_opportunities)} items):
+{chr(10).join(f"- {item}" for item in all_opportunities)}
+
+THREATS/RISKS ({len(all_threats)} items):
+{chr(10).join(f"- {item}" for item in all_threats)}
+
+CRITICAL DEDUPLICATION RULES:
+1. **Remove semantic duplicates** - Items saying the same thing in different words are duplicates
+   Example: "Strong technical team" = "Experienced technical founders" → Keep only one
+2. **Merge similar items** - Combine related insights into single, well-phrased statements
+3. **Keep specifics** - Prefer insights with numbers, names, or concrete details
+4. **Prioritize importance** - Keep the most critical insights for investment decisions
+5. **Quality over quantity** - Better to have 5 excellent insights than 10 mediocre ones
+
+LIMITS (strict):
+- summary: 2-3 sentences maximum
+- key_insights: max 10 items
+- strengths: max 8 items
+- weaknesses: max 8 items
+- opportunities: max 6 items
+- threats: max 8 items
+
+CRITICAL: Respond with ONLY valid JSON, no markdown, no explanations:
+{{
+  "summary": "Brief executive summary combining the most important points",
+  "key_insights": ["Most important insight 1", "Most important insight 2", ...],
+  "strengths": ["Strength 1", "Strength 2", ...],
+  "weaknesses": ["Weakness 1", "Weakness 2", ...],
+  "opportunities": ["Opportunity 1", "Opportunity 2", ...],
+  "threats": ["Threat 1", "Threat 2", ...]
+}}"""
+
+            result = await llm_service.generate_structured(
+                prompt=prompt,
+                temperature=0.3  # Low temperature for consistency
+            )
+            
+            print(f"   ✅ LLM deduplication complete:")
+            print(f"      Insights: {len(all_key_insights)} → {len(result.get('key_insights', []))}")
+            print(f"      Strengths: {len(all_strengths)} → {len(result.get('strengths', []))}")
+            print(f"      Weaknesses: {len(all_weaknesses)} → {len(result.get('weaknesses', []))}")
+            print(f"      Opportunities: {len(all_opportunities)} → {len(result.get('opportunities', []))}")
+            print(f"      Threats: {len(all_threats)} → {len(result.get('threats', []))}")
             
             return result
-        
-        # Create consolidated summary (first 2-3 most relevant)
-        consolidated_summary = ". ".join(all_summaries[:3]) if all_summaries else "Analysis completed"
-        
-        return {
-            "summary": consolidated_summary[:2000],  # Truncate
-            "key_insights": deduplicate_list(all_key_insights, 15),
-            "strengths": deduplicate_list(all_strengths, 15),
-            "weaknesses": deduplicate_list(all_weaknesses, 15),
-            "opportunities": deduplicate_list(all_opportunities, 15),
-            "threats": deduplicate_list(all_threats, 12)
-        }
+            
+        except Exception as e:
+            print(f"   ⚠️ LLM deduplication failed: {e}")
+            print(f"   🔄 Falling back to simple deduplication")
+            
+            # Fallback to simple deduplication
+            def deduplicate_list(items: List[str], max_items: int = 10) -> List[str]:
+                """Remove duplicates while preserving order"""
+                seen = set()
+                result = []
+                for item in items:
+                    normalized = item.lower().strip()
+                    if normalized and normalized not in seen and len(normalized) > 10:
+                        seen.add(normalized)
+                        result.append(item)
+                        if len(result) >= max_items:
+                            break
+                return result
+            
+            consolidated_summary = ". ".join(all_summaries[:3]) if all_summaries else "Analysis completed"
+            
+            return {
+                "summary": consolidated_summary[:500],
+                "key_insights": deduplicate_list(all_key_insights, 10),
+                "strengths": deduplicate_list(all_strengths, 8),
+                "weaknesses": deduplicate_list(all_weaknesses, 8),
+                "opportunities": deduplicate_list(all_opportunities, 6),
+                "threats": deduplicate_list(all_threats, 8)
+            }
 
 
 # Singleton
