@@ -357,7 +357,7 @@ CRITICAL: Respond with ONLY valid JSON, no markdown, no explanations:
             consolidated_summary = ". ".join(all_summaries[:3]) if all_summaries else "Analysis completed"
             
             return {
-                "summary": consolidated_summary[:500],
+                "summary": consolidated_summary[:1000],
                 "key_insights": deduplicate_list(all_key_insights, 10),
                 "strengths": deduplicate_list(all_strengths, 8),
                 "weaknesses": deduplicate_list(all_weaknesses, 8),
