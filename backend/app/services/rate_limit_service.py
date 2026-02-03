@@ -75,7 +75,7 @@ class QuotaExceededError(HTTPException):
             "current": current,
             "limit": limit,
             "reset_at": reset_at.isoformat() if reset_at else None,
-            "upgrade_cta": upgrade_cta or "שדרג לתוכנית Pro לשאלות נוספות"
+            "upgrade_cta": upgrade_cta or "נגמרו השימושים לעכשיו"
         }
         super().__init__(status_code=429, detail=detail)
     
@@ -166,7 +166,7 @@ def validate_analysis_request(user_id: str, db: Session) -> UserUsage:
             current=usage.daily_analyses,
             limit=daily_limit,
             reset_at=usage.daily_reset_at,
-            upgrade_cta="שדרג לתוכנית Pro לניתוחים ללא הגבלה"
+            upgrade_cta="נגמרו השימושים לעכשיו"
         )
     
     # Anti-abuse: Check if user created 5+ analyses in last hour
@@ -207,7 +207,7 @@ def validate_chat_request(
             current=current_questions_for_analysis,
             limit=per_analysis_limit,
             reset_at=None,  # Per-analysis limit never resets
-            upgrade_cta="שדרג לתוכנית Pro ל-10 שאלות לניתוח"
+            upgrade_cta="נגמרו השימושים לעכשיו"
         )
     
     # Check daily limit
