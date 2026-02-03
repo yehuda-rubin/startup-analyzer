@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { uploadDocuments } from '../services/api';
-import { UploadCloud, File, AlertCircle, CheckCircle2, Loader2, ArrowRight } from 'lucide-react';
+import { UploadCloud, File, AlertCircle, CheckCircle2, Loader2, ArrowRight, Eye } from 'lucide-react';
 
 function DocumentUpload({ onUploadSuccess }) {
   const [startupName, setStartupName] = useState('');
@@ -51,6 +51,20 @@ function DocumentUpload({ onUploadSuccess }) {
         <UploadCloud className="text-[#00FF41]" />
         Upload Data
       </h2>
+
+      {/* 🚨 PUBLIC SHARING WARNING - AT TOP OF FORM */}
+      <div className="mb-6 p-4 bg-amber-500/10 border border-amber-500/30 rounded-lg flex items-start gap-3">
+        <Eye className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+        <div>
+          <p className="text-amber-400 text-sm font-semibold mb-1">
+            Public Sharing Notice
+          </p>
+          <p className="text-amber-200/80 text-xs leading-relaxed">
+            Any analysis generated from these documents will be visible to all platform users. 
+            Do not upload confidential or proprietary information.
+          </p>
+        </div>
+      </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
