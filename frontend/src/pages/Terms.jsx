@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, FileText, AlertTriangle, Users, Eye } from 'lucide-react';
+import { ArrowLeft, FileText, AlertTriangle, Users, Eye, Shield, Mail } from 'lucide-react';
 
 export default function Terms() {
   return (
@@ -160,6 +160,33 @@ export default function Terms() {
               These Terms shall be governed by and construed in accordance with the laws of the State of Israel. 
               Any disputes arising under these Terms shall be subject to the exclusive jurisdiction of the competent 
               courts in Jerusalem, Israel.
+            </p>
+          </Section>
+
+          {/* 👇 SECTIONS 8 & 9 ADDED 👇 */}
+
+          <Section title="8. Privacy & Data Processing" icon={<Shield className="w-6 h-6 text-[#00E5FF]" />}>
+            <p>
+              We respect your privacy while operating a public platform.
+            </p>
+            <ul className="list-disc list-inside space-y-2 mt-3 ml-4">
+               <li>
+                 <strong>Third-Party AI:</strong> Data uploaded to the System is processed by third-party Large Language Model (LLM) providers for analysis.
+               </li>
+               <li>
+                 <strong>Zero Data Retention:</strong> We configure our API interactions to request that third-party AI providers 
+                 <strong> do not use your data for model training</strong>. However, data transmission is subject to their privacy policies.
+               </li>
+            </ul>
+          </Section>
+
+          <Section title="9. Contact & Report Abuse" icon={<Mail className="w-6 h-6 text-[#00E5FF]" />}>
+            <p>
+              If you believe any content on the System violates your copyright or is abusive, please contact us immediately for a 
+              "Notice and Takedown" procedure.
+            </p>
+            <p className="mt-2 text-zinc-400">
+              Contact Email: <a href="mailto:hvusvruchi2@gmail.com" className="text-[#00FF41] hover:underline">hvusvruchi2@gmail.com</a>
             </p>
           </Section>
 
