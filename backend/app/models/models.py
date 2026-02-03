@@ -65,6 +65,11 @@ class Analysis(Base):
     
     startup = relationship("Startup", back_populates="analyses")
 
+    # Add these fields to Analysis class
+    user_id = Column(String(255), nullable=True, index=True)
+    chat_questions_count = Column(Integer, default=0)
+    chat_messages = relationship("ChatMessage", back_populates="analysis", cascade="all, delete-orphan")
+
 
 class Score(Base):
     __tablename__ = "scores"
@@ -138,3 +143,61 @@ class Report(Base):
     generated_by = Column(String(100))
     meta_data = Column(JSON)  # ✅ שונה
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+class UserUsage(Base):
+    """Track user quota usage for rate limiting"""
+    __tablename__ = "user_usage"
+    
+    user_id = Column(String(255), primary_key=True, index=True)
+    
+    # Questions tracking
+    daily_questions = Column(Integer, default=0)
+    weekly_questions = Column(Integer, default=0)
+    monthly_questions = Column(Integer, default=0)
+    
+    # Analyses tracking
+    daily_analyses = Column(Integer, default=0)
+    weekly_analyses = Column(Integer, default=0)
+    monthly_analyses = Column(Integer, default=0)
+    
+    # Reset timestamps
+    daily_reset_at = Column(DateTime(timezone=True), nullable=False)
+    weekly_reset_at = Column(DateTime(timezone=True), nullable=False)
+    monthly_reset_at = Column(DateTime(timezone=True), nullable=False)
+    
+    # Subscription info
+    subscription_tier = Column(String(20), default='free')
+    subscription_expires_at = Column(DateTime(timezone=True), nullable=True)
+    
+    # Metadata
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+    
+    # ❌ NO relationship here - we don't need it!
+
+
+class ChatMessage(Base):
+    """Store chat conversations about analyses"""
+    __tablename__ = "chat_messages"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    analysis_id = Column(Integer, ForeignKey("analyses.id", ondelete="CASCADE"), nullable=False, index=True)
+    user_id = Column(String(255), nullable=False, index=True)
+    
+    # Message content
+    question = Column(Text, nullable=False)
+    answer = Column(Text, nullable=False)
+    
+    # Context used for RAG
+    context_chunks = Column(JSON, nullable=True)
+    
+    # Token tracking
+    tokens_used = Column(Integer, nullable=True)
+    estimated_cost = Column(Float, nullable=True)
+    
+    # Metadata
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)
+    
+    # Relationships
+    analysis = relationship("Analysis", back_populates="chat_messages")
+    # ❌ NO user relationship - we don't need it!

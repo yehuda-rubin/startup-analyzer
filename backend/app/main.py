@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from .api import chat
 from fastapi.staticfiles import StaticFiles
 import os
 
@@ -67,3 +68,4 @@ app.include_router(scoring.router, prefix="/api/scoring", tags=["Scoring"])
 app.include_router(market.router, prefix="/api/market", tags=["Market Analysis"])
 app.include_router(reports.router, prefix="/api/reports", tags=["Reports"])
 app.include_router(startups.router, prefix="/api/startups", tags=["Startups"])
+app.include_router(chat.router,prefix="/api/chat",tags=["chat"])

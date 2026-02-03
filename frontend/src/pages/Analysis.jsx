@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import ScoreAnalysis from '../components/ScoreAnalysis';
+import ChatContainer from '../components/ChatContainer';
 import { useParams } from 'react-router-dom';
 import {
   listStartups,
@@ -306,6 +307,10 @@ function Analysis() {
             </div>
           )}
         </div>
+      )}
+      {/* Chat Feature - only shows when analysis exists */}
+      {analysis && (
+        <ChatContainer analysisId={analysis.id} />
       )}
     </div>
   );
