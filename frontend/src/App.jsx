@@ -11,6 +11,7 @@ import MarketAnalysis from './pages/MarketAnalysis';
 import Reports from './pages/Reports';
 import Login from './pages/Login';
 import SignUp from './pages/SignUp';
+import Terms from './pages/Terms';
 
 const App = () => {
   const [selectedStartup, setSelectedStartup] = useState(null);
@@ -42,6 +43,7 @@ const App = () => {
           {/* Public Routes - contain their own layout wrappers */}
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<SignUp />} />
+          <Route path="/terms" element={<Terms />} />
 
           {/* Protected Routes */}
           <Route path="/" element={<ProtectedLayout><Navigate to="/dashboard" replace /></ProtectedLayout>} />

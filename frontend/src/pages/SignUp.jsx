@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Rocket, Briefcase, Mail, Lock, CheckCircle2, ArrowRight, Loader2, Zap } from 'lucide-react';
+import { Rocket, Briefcase, Mail, Lock, CheckCircle2, ArrowRight, Loader2, Zap, AlertCircle } from 'lucide-react';
 
 export default function SignUp() {
   const [role, setRole] = useState(null); // 'entrepreneur' | 'investor'
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -23,6 +24,10 @@ export default function SignUp() {
 
     if (!role) {
       return setError('Please select a role');
+    }
+
+    if (!acceptedTerms) {
+      return setError('You must accept the terms and conditions to continue');
     }
 
     try {
@@ -102,7 +107,7 @@ export default function SignUp() {
             </div>
 
             {/* Inputs */}
-            <div className="space-y-4">
+            <div className="space-y-5">
               <div>
                 <label className="block text-[#E0E0E0] text-xs font-semibold mb-2 uppercase tracking-wider pl-1">
                   Identity
@@ -162,33 +167,72 @@ export default function SignUp() {
               </div>
             </div>
 
+            {/* ✅ LEGAL DISCLAIMER CHECKBOX - NEW SECTION */}
+            <div className="border-t border-white/10 pt-5">
+              <label className="flex items-start gap-3 cursor-pointer group">
+                <div className="relative flex items-center justify-center mt-0.5">
+                  <input
+                    type="checkbox"
+                    checked={acceptedTerms}
+                    onChange={(e) => setAcceptedTerms(e.target.checked)}
+                    className="peer sr-only"
+                  />
+                  <div className="w-5 h-5 border-2 border-zinc-700 rounded bg-[#0A0A0A] 
+                    peer-checked:bg-[#00FF41] peer-checked:border-[#00FF41] 
+                    transition-all duration-300 
+                    peer-checked:shadow-[0_0_10px_rgba(0,255,65,0.3)]
+                    flex items-center justify-center">
+                    {acceptedTerms && <CheckCircle2 size={14} className="text-black" />}
+                  </div>
+                </div>
+                <span className="text-xs text-zinc-400 leading-relaxed group-hover:text-zinc-300 transition-colors">
+                  I accept the{' '}
+                  <a 
+                    href="/terms" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-[#00FF41] hover:text-[#00E5FF] underline underline-offset-2 transition-colors"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    Terms of Use
+                  </a>
+                  {' '}and acknowledge that this AI-powered system may contain errors. 
+                  The information provided does not constitute investment advice or a recommendation for any action. 
+                  All investment decisions are solely my responsibility. 
+                  The system is provided as-is without warranty for data quality.
+                </span>
+              </label>
+            </div>
+
             <button
               disabled={loading}
               type="submit"
               className={`w-full font-bold py-3.5 rounded-lg transition-all duration-300 shadow-lg flex items-center justify-center gap-2 uppercase tracking-wide text-sm
                 hover:scale-[1.02] active:scale-[0.98]
                 ${isInvestor
-                  ? 'bg-gradient-to-r from-[#00E5FF] to-[#0055FF] text-white shadow-[0_0_20px_rgba(0,229,255,0.2)] hover:shadow-[0_0_30px_rgba(0,229,255,0.4)]'
+                  ? 'bg-gradient-to-r from-[#00E5FF] to-[#00FF41] text-black shadow-[0_0_20px_rgba(0,229,255,0.2)] hover:shadow-[0_0_30px_rgba(0,229,255,0.4)]'
                   : 'bg-gradient-to-r from-[#00FF41] to-[#00E5FF] text-black shadow-[0_0_20px_rgba(0,255,65,0.2)] hover:shadow-[0_0_30px_rgba(0,255,65,0.4)]'
                 }`}
             >
               {loading ? (
-                <Loader2 className="animate-spin h-5 w-5" />
+                <Loader2 className="animate-spin h-5 w-5 text-black" />
               ) : (
                 <>
                   Initialize Protocol <ArrowRight className="h-5 w-5" />
                 </>
               )}
             </button>
-
-            <div className="text-center text-sm text-[#E0E0E0]">
-              Already linked?{' '}
-              <Link to="/login" className="group inline-flex items-center gap-1 hover:text-[#00FF41] transition-colors duration-300 font-medium">
-                <span>Access System</span>
-                <ArrowRight className="w-3 h-3 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300 text-[#00FF41]" />
-              </Link>
-            </div>
           </form>
+
+          <div className="mt-8 text-center text-sm text-[#E0E0E0]">
+            Already linked?{' '}
+            <Link
+              to="/login"
+              className="text-[#00FF41] hover:text-[#00E5FF] transition-colors duration-300 font-semibold"
+            >
+              Access System
+            </Link>
+          </div>
         </div>
       </div>
     </div>

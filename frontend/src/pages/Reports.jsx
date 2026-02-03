@@ -230,6 +230,20 @@ function Reports() {
                 </p>
               </div>
             )}
+
+            {/* ✅ LEGAL DISCLAIMER - NEW SECTION AT BOTTOM OF EACH REPORT */}
+            <div className="mt-12 pt-6 border-t border-white/10 print:border-gray-300">
+              <div className="flex items-start gap-3 p-4 bg-zinc-900/50 rounded-lg print:bg-gray-100 print:border print:border-gray-300">
+                <AlertCircle className="w-5 h-5 text-zinc-500 print:text-gray-600 shrink-0 mt-0.5" />
+                <p className="text-xs text-zinc-500 print:text-gray-700 leading-relaxed">
+                  <span className="font-semibold">Disclaimer:</span> This AI-powered system may contain errors. 
+                  The information provided does not constitute investment advice or a recommendation for any action. 
+                  All investment decisions are solely the user's responsibility. 
+                  The system is provided as-is without warranty for data quality.
+                </p>
+              </div>
+            </div>
+
           </div>
         ))}
       </div>
